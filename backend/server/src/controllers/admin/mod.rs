@@ -1,14 +1,20 @@
 mod models;
 
 use axum::{
+    extract::Request,
     http::{header::ORIGIN, HeaderMap, StatusCode},
     response::{IntoResponse, Json, Response},
+    Extension,
 };
-use models::{LogInReq, LogInRes};
-use tracing::{error, warn};
+use models::{ChangePwdReq, LogInReq, LogInRes};
+use tracing::{debug, error, warn};
+use tracing_subscriber::registry::Data;
 use validator::Validate;
 
-use crate::business::auth::{Administrator, AdministratorError};
+use crate::{
+    authentication::{gen_jwt_token, AdminUser},
+    business::auth::{Administrator, AdministratorError},
+};
 
 pub(crate) async fn log_in(header: HeaderMap, Json(log_in_req): Json<LogInReq>) -> Response {
     if let Err(e) = log_in_req.validate() {
@@ -22,7 +28,7 @@ pub(crate) async fn log_in(header: HeaderMap, Json(log_in_req): Json<LogInReq>) 
     {
         Ok(mut admin) => {
             if !admin.verify_password(&log_in_req.hashed_password) {
-                return StatusCode::UNAUTHORIZED.into_response();
+                return StatusCode::BAD_REQUEST.into_response();
             }
 
             let origin = header.get(ORIGIN).unwrap();
@@ -31,9 +37,12 @@ pub(crate) async fn log_in(header: HeaderMap, Json(log_in_req): Json<LogInReq>) 
                 .await
                 .unwrap();
 
+            let jwt_token = gen_jwt_token(&admin.model.id, &admin.model.username);
+
             Json(LogInRes {
                 username: admin.model.username,
                 email: admin.model.email,
+                jwt_token,
             })
             .into_response()
         }
@@ -48,4 +57,14 @@ pub(crate) async fn log_in(header: HeaderMap, Json(log_in_req): Json<LogInReq>) 
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
+}
+
+pub async fn change_password(
+    Extension(admin_user): Extension<AdminUser>,
+    Json(change_pwd_req): Json<ChangePwdReq>,
+) -> impl IntoResponse {
+    debug!("change_pwd_req: {:?}", change_pwd_req);
+    debug!("admin_user.id: {}", admin_user.id);
+
+    (StatusCode::OK).into_response()
 }

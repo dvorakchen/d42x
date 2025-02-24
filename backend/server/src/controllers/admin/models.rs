@@ -12,5 +12,14 @@ pub(crate) struct LogInReq {
 #[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct LogInRes {
     pub username: String,
-    pub email: String
+    pub email: String,
+    pub jwt_token: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Validate)]
+pub(crate) struct ChangePwdReq {
+    #[validate(length(min = 6, code = "hashed_password_current empty"))]
+    hashed_password_current: String,
+    #[validate(length(min = 6, code = "hashed_password_new empty"))]
+    hashed_password_new: String,
 }

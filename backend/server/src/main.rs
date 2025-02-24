@@ -1,7 +1,7 @@
 use clap::Parser;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::DbErr;
-use server::app::AppBuilder;
+use server::{app::AppBuilder, config};
 use tracing::{debug, info};
 
 #[derive(Parser, Debug)]
@@ -42,8 +42,8 @@ fn set_log() {
 async fn run_app() {
     let mut builder = AppBuilder::new();
     builder
-        .set_address(dotenv::var("ADDRESS").expect("cannot find ADDRESS"))
-        .set_cors(dotenv::var("CORS").expect("connat find CORS"));
+        .set_address(config::ADDRESS.to_string())
+        .set_cors(config::CORS.to_string());
 
     builder.build().run().await;
 }

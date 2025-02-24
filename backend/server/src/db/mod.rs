@@ -4,11 +4,12 @@ use sea_orm::{Database, DatabaseConnection, DbErr};
 use tokio::sync::Mutex;
 use tracing::trace;
 
-async fn get_connection() -> Result<DatabaseConnection, DbErr> {
-    let database_url = dotenv::var("DATABASE_URL").expect("connat get env: DATABASE_URL");
-    trace!("database_url: {}", database_url);
+use crate::config;
 
-    let db: DatabaseConnection = Database::connect(database_url).await?;
+async fn get_connection() -> Result<DatabaseConnection, DbErr> {
+    trace!("database_url: {}", *config::DATABASE_URL);
+
+    let db: DatabaseConnection = Database::connect(config::DATABASE_URL.to_string()).await?;
     db.ping().await?;
 
     Ok(db)

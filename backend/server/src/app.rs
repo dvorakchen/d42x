@@ -1,16 +1,16 @@
 use std::default::Default;
 
 use axum::{
-    http::{header::AUTHORIZATION, HeaderName, HeaderValue},
+    http::{header::AUTHORIZATION, HeaderName, HeaderValue, Method},
     middleware,
-    routing::post,
+    routing::{post, put},
     Router,
 };
 use tokio::net::TcpListener;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use tracing::{debug, info};
 
-use crate::controllers::admin::log_in;
+use crate::controllers::admin::{change_password, log_in};
 
 pub struct App {
     address: String,
@@ -24,15 +24,12 @@ impl App {
         let api_routes = Router::new()
             .nest("/admin", Self::admin_routes())
             .nest("/client", Self::client_routes());
-        let app = Router::new()
-            .nest("/api", api_routes)
-            .nest_service(
-                "/admin-view",
-                tower_http::services::ServeDir::new("admin-view"),
-            )
-            .layer(self.cors())
-            // .layer(Extension(Self::init_db().await.expect("init db error")))
-            .layer(middleware::from_fn(crate::middleware::cipher_middleware));
+        let mut app = Router::new().nest("/api", api_routes).nest_service(
+            "/admin-view",
+            tower_http::services::ServeDir::new("admin-view"),
+        );
+
+        app = Self::custom_middleware(app).layer(self.cors());
 
         axum::serve(listener, app).await.unwrap();
     }
@@ -42,7 +39,9 @@ impl App {
     }
 
     fn admin_routes() -> Router {
-        Router::new().route("/login", post(log_in))
+        Router::new()
+            .route("/login", post(log_in))
+            .route("/change-password", put(change_password))
     }
 
     fn cors(&self) -> CorsLayer {
@@ -56,10 +55,19 @@ impl App {
             AllowOrigin::from(self.cors.clone().parse::<HeaderValue>().unwrap())
         };
 
-        CorsLayer::new().allow_origin(allow_orgin).allow_headers([
-            AUTHORIZATION,
-            HeaderName::from_lowercase(b"x-date").unwrap(),
-        ])
+        CorsLayer::new()
+            .allow_origin(allow_orgin)
+            .allow_methods([Method::GET, Method::POST, Method::PUT])
+            .allow_headers([
+                AUTHORIZATION,
+                HeaderName::from_lowercase(b"x-date").unwrap(),
+            ])
+    }
+
+    fn custom_middleware(router: Router) -> Router {
+        router
+            .layer(middleware::from_fn(crate::middleware::jwt_auth_middleware))
+            .layer(middleware::from_fn(crate::middleware::cipher_middleware))
     }
 
     #[cfg(debug_assertions)]
