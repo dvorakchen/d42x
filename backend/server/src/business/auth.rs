@@ -7,6 +7,7 @@
 //! use function verify_password()
 
 use db_entity::accounts;
+use sea_orm::prelude::Uuid;
 use sea_orm::{ActiveModelTrait, DatabaseConnection};
 use sea_orm::{ColumnTrait, DbErr, Set};
 use sea_orm::{EntityTrait, QueryFilter};
@@ -42,6 +43,10 @@ impl Administrator {
         } else {
             Err(AdministratorError::NotFound(username))
         }
+    }
+
+    pub async fn new_from_id(id: Uuid) -> Result<Self, AdministratorError> {
+        todo!()
     }
 
     /// verify password

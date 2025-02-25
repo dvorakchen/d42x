@@ -63,6 +63,9 @@ pub async fn change_password(
     Extension(admin_user): Extension<AdminUser>,
     Json(change_pwd_req): Json<ChangePwdReq>,
 ) -> impl IntoResponse {
+
+    let admin = Administrator::new_from_id(admin_user.id).await;
+
     debug!("change_pwd_req: {:?}", change_pwd_req);
     debug!("admin_user.id: {}", admin_user.id);
 
