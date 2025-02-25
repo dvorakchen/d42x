@@ -1,14 +1,12 @@
 mod models;
 
 use axum::{
-    extract::Request,
     http::{header::ORIGIN, HeaderMap, StatusCode},
     response::{IntoResponse, Json, Response},
     Extension,
 };
 use models::{ChangePwdReq, LogInReq, LogInRes};
 use tracing::{debug, error, warn};
-use tracing_subscriber::registry::Data;
 use validator::Validate;
 
 use crate::{

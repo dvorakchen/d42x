@@ -46,6 +46,8 @@ impl Administrator {
     }
 
     pub async fn new_from_id(id: Uuid) -> Result<Self, AdministratorError> {
+        let db = DbHelper::get_connection().await?;
+
         todo!()
     }
 

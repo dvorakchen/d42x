@@ -17,7 +17,7 @@ pub(crate) struct LogInRes {
 }
 
 #[derive(Serialize, Deserialize, Debug, Validate)]
-pub(crate) struct ChangePwdReq {
+pub struct ChangePwdReq {
     #[validate(length(min = 6, code = "hashed_password_current empty"))]
     hashed_password_current: String,
     #[validate(length(min = 6, code = "hashed_password_new empty"))]
