@@ -1,7 +1,10 @@
 use std::default::Default;
 
 use axum::{
-    http::{header::AUTHORIZATION, HeaderName, HeaderValue, Method}, middleware, routing::{get, post, put}, Router
+    Router,
+    http::{HeaderName, HeaderValue, Method, header::AUTHORIZATION},
+    middleware,
+    routing::{get, post, put},
 };
 use tokio::net::TcpListener;
 use tower_http::cors::{AllowOrigin, CorsLayer};
@@ -21,10 +24,10 @@ impl App {
         let api_routes = Router::new()
             .nest("/admin", Self::admin_routes())
             .nest("/client", Self::client_routes());
-        let mut app = Router::new().nest("/api", api_routes).nest_service(
-            "/admin-view",
-            tower_http::services::ServeDir::new("admin-view"),
-        );
+        let mut app = Router::new()
+            .nest("/api", api_routes)
+            .nest_service("/wwwroot", tower_http::services::ServeDir::new("wwwroot"))
+            .nest_service("/favicon.ico", tower_http::services::ServeDir::new("wwwroot/favicon.ico"));
 
         app = Self::custom_middleware(app).layer(self.cors());
 

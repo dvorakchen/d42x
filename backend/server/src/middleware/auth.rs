@@ -1,10 +1,10 @@
 use crate::{
-    authentication::{validate_claims, AdminUser, CLAIM_UID, CLAIM_USERNAME},
-    config,
+    authentication::{AdminUser, CLAIM_UID, CLAIM_USERNAME, validate_claims},
+    config::{self, WWWROOT_DIR},
 };
 use axum::{
     extract::Request,
-    http::{header::AUTHORIZATION, Method, StatusCode},
+    http::{Method, StatusCode, header::AUTHORIZATION},
     middleware::Next,
     response::{IntoResponse, Response},
 };
@@ -19,7 +19,11 @@ const BEARER_PREFIX: &str = "Bearer ";
 
 pub async fn jwt_auth_middleware(mut request: Request, next: Next) -> Response {
     let path = request.uri().path();
-    if WHITE_LIST.contains(&path) || WHITE_METHODS.contains(request.method()) {
+    if WHITE_LIST.contains(&path)
+        || path == "/favicon.ico"
+        || path.starts_with(WWWROOT_DIR)
+        || WHITE_METHODS.contains(request.method())
+    {
         return next.run(request).await;
     }
 
