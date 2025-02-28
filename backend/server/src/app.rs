@@ -25,9 +25,13 @@ impl App {
             .nest("/admin", Self::admin_routes())
             .nest("/client", Self::client_routes());
         let mut app = Router::new()
+            .route("/", get(|| async { "hello" }))
             .nest("/api", api_routes)
             .nest_service("/wwwroot", tower_http::services::ServeDir::new("wwwroot"))
-            .nest_service("/favicon.ico", tower_http::services::ServeDir::new("wwwroot/favicon.ico"));
+            .nest_service(
+                "/favicon.ico",
+                tower_http::services::ServeDir::new("wwwroot/favicon.ico"),
+            );
 
         app = Self::custom_middleware(app).layer(self.cors());
 

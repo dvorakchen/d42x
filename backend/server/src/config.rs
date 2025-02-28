@@ -27,5 +27,3 @@ lazy_static! {
     pub static ref AUD: String = dotenv::var("AUD").expect("not found AUD");
     pub static ref EXP: usize = dotenv::var("EXP").expect("not found EXP").parse().unwrap();
 }
-
-pub static WWWROOT_DIR: &str = "/wwwroot";
