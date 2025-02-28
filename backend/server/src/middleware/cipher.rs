@@ -1,8 +1,8 @@
 use crate::config;
 use axum::{
-    body::{to_bytes, Body},
+    body::{Body, to_bytes},
     extract::Request,
-    http::{header::CONTENT_TYPE, Method},
+    http::{Method, header::CONTENT_TYPE},
     middleware::Next,
     response::Response,
 };
@@ -18,15 +18,21 @@ lazy_static! {
 }
 
 pub async fn cipher_middleware(mut request: Request, next: Next) -> Response {
+    let mut need_cipher = false;
+    let is_api = request.uri().to_string().starts_with("/api/");
+    let is_get = Method::GET == *request.method();
+
     match *request.method() {
-        Method::GET | Method::POST | Method::DELETE | Method::PUT => {}
-        _ => return next.run(request).await,
+        Method::POST | Method::DELETE | Method::PUT if is_api => {
+            need_cipher = true;
+        }
+        _ => {}
     }
 
-    let need_cipher = request.uri().to_string().starts_with("/api/");
-    let content_type = request.headers().get(CONTENT_TYPE).unwrap();
+    // let need_cipher = request.uri().to_string().starts_with("/api/");
+    let content_type = request.headers().get(CONTENT_TYPE);
 
-    if need_cipher && content_type == TEXT_PLAIN {
+    if need_cipher && content_type.is_some() && content_type.unwrap() == TEXT_PLAIN {
         let (mut parts, body) = request.into_parts();
 
         let body = decrypt_body(body).await;
@@ -38,6 +44,10 @@ pub async fn cipher_middleware(mut request: Request, next: Next) -> Response {
     }
 
     let mut response = next.run(request).await;
+
+    if is_get && is_api && !need_cipher {
+        need_cipher = true;
+    }
 
     if need_cipher {
         let (mut parts, body) = response.into_parts();
@@ -56,6 +66,11 @@ pub async fn cipher_middleware(mut request: Request, next: Next) -> Response {
 
 async fn decrypt_body(body: Body) -> Body {
     let body = to_bytes(body, usize::MAX).await.unwrap();
+
+    if body.len() == 0 {
+        return Body::from(body);
+    }
+
     let body = String::from_utf8(body.to_vec()).unwrap();
     debug!("encrypted body: {}", body);
     let body = hex::decode(body).expect("decrypt fail, hex_decode fail");
@@ -70,7 +85,14 @@ async fn decrypt_body(body: Body) -> Body {
 
 async fn encrypt_body(body: Body) -> Body {
     let body = to_bytes(body, usize::MAX).await.unwrap();
+
+    debug!("len: {}", body.len());
+    if body.len() == 0 {
+        return Body::from(body);
+    }
+
     let body = String::from_utf8(body.to_vec()).unwrap();
+    debug!("body: {}", body);
 
     debug!("raw body: {}", body);
     let body = aes_enc_cbc(

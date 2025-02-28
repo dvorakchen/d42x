@@ -1,16 +1,13 @@
 use std::default::Default;
 
 use axum::{
-    http::{header::AUTHORIZATION, HeaderName, HeaderValue, Method},
-    middleware,
-    routing::{post, put},
-    Router,
+    http::{header::AUTHORIZATION, HeaderName, HeaderValue, Method}, middleware, routing::{get, post, put}, Router
 };
 use tokio::net::TcpListener;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use tracing::{debug, info};
 
-use crate::controllers::admin::{change_password, log_in};
+use crate::controllers::admin::{change_password, list_memes, log_in, post_memes};
 
 pub struct App {
     address: String,
@@ -42,6 +39,8 @@ impl App {
         Router::new()
             .route("/login", post(log_in))
             .route("/change-password", put(change_password))
+            .route("/post-memes", post(post_memes))
+            .route("/memes", get(list_memes))
     }
 
     fn cors(&self) -> CorsLayer {

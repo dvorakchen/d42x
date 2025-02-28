@@ -1,18 +1,31 @@
+mod memes;
 mod models;
 
 use axum::{
-    http::{header::ORIGIN, HeaderMap, StatusCode},
-    response::{IntoResponse, Json, Response},
     Extension,
+    http::{HeaderMap, StatusCode, header::ORIGIN},
+    response::{IntoResponse, Json, Response},
 };
 use models::{ChangePwdReq, LogInReq, LogInRes};
-use tracing::{debug, error, warn};
+use tracing::{error, warn};
 use validator::Validate;
 
 use crate::{
-    authentication::{gen_jwt_token, AdminUser},
+    authentication::{AdminUser, gen_jwt_token},
     business::auth::{Administrator, AdministratorError},
 };
+
+pub use memes::*;
+
+#[macro_export]
+macro_rules! need_administrator {
+    ($admin_id: expr) => {
+        use axum::response::IntoResponse;
+        if let Err(e) = crate::business::auth::Administrator::new_from_id($admin_id).await {
+            return (axum::http::StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+        }
+    };
+}
 
 pub(crate) async fn log_in(header: HeaderMap, Json(log_in_req): Json<LogInReq>) -> Response {
     if let Err(e) = log_in_req.validate() {
@@ -61,11 +74,26 @@ pub async fn change_password(
     Extension(admin_user): Extension<AdminUser>,
     Json(change_pwd_req): Json<ChangePwdReq>,
 ) -> impl IntoResponse {
+    if let Err(e) = change_pwd_req.validate() {
+        return (StatusCode::BAD_REQUEST, Json(e)).into_response();
+    }
 
-    let admin = Administrator::new_from_id(admin_user.id).await;
-
-    debug!("change_pwd_req: {:?}", change_pwd_req);
-    debug!("admin_user.id: {}", admin_user.id);
-
-    (StatusCode::OK).into_response()
+    match Administrator::new_from_id(admin_user.id).await {
+        Ok(mut admin) if admin.model.username == admin_user.username => {
+            match admin
+                .change_password(
+                    &change_pwd_req.hashed_password_current,
+                    &change_pwd_req.hashed_password_new,
+                )
+                .await
+            {
+                Ok(_) => StatusCode::OK.into_response(),
+                Err(AdministratorError::IncorrectPassword) => {
+                    StatusCode::BAD_REQUEST.into_response()
+                }
+                Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+            }
+        }
+        _ => (StatusCode::BAD_REQUEST, "Not the same admin user").into_response(),
+    }
 }

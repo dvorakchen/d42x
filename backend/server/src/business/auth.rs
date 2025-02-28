@@ -6,6 +6,7 @@
 //! so verify the password need bcrypt the password that getting blake3 from client and compares with hashed_password from database
 //! use function verify_password()
 
+use bcrypt::verify;
 use db_entity::accounts;
 use sea_orm::prelude::Uuid;
 use sea_orm::{ActiveModelTrait, DatabaseConnection};
@@ -25,7 +26,7 @@ impl Administrator {
     pub async fn new(
         username: String,
         // hashed_password: String,
-    ) -> Result<Self, AdministratorError> {
+    ) -> AdminResult<Self> {
         let db = DbHelper::get_connection().await?;
 
         let admin = {
@@ -45,10 +46,40 @@ impl Administrator {
         }
     }
 
-    pub async fn new_from_id(id: Uuid) -> Result<Self, AdministratorError> {
+    pub async fn new_from_id(id: Uuid) -> AdminResult<Self> {
         let db = DbHelper::get_connection().await?;
 
-        todo!()
+        let admin = {
+            accounts::Entity::find_by_id(id)
+                .filter(accounts::Column::IsAdmin.eq(true))
+                .one(&db)
+                .await
+                .map_err(AdministratorError::from)?
+        };
+
+        if let Some(model) = admin {
+            Ok(Self { db, model })
+        } else {
+            Err(AdministratorError::NotFound(id.to_string()))
+        }
+    }
+
+    pub async fn change_password(&mut self, cur_pwd: &str, new_pwd: &str) -> AdminResult<()> {
+        if !self.verify_password(cur_pwd) {
+            return Err(AdministratorError::IncorrectPassword);
+        }
+
+        let now = chrono::Utc::now().into();
+
+        let mut model: accounts::ActiveModel = self.model.clone().into();
+        model.hashed_password = Set(new_pwd.to_string());
+        model.last_actiity_date_time = Set(now);
+        model.update(&self.db).await?;
+
+        self.model.hashed_password = new_pwd.to_string();
+        self.model.last_actiity_date_time = now;
+
+        Ok(())
     }
 
     /// verify password
@@ -56,12 +87,10 @@ impl Administrator {
     /// # Arguments
     /// hashed_password: the password getting blake3 and bcrypt from client
     pub fn verify_password(&self, hashed_password: &str) -> bool {
-        use bcrypt::verify;
-
         verify(&self.model.hashed_password, hashed_password).unwrap()
     }
 
-    pub async fn log_in_activity(&mut self, ip_addr: &str) -> Result<(), AdministratorError> {
+    pub async fn log_in_activity(&mut self, ip_addr: &str) -> AdminResult<()> {
         let now = chrono::Utc::now().into();
 
         let mut model: accounts::ActiveModel = self.model.clone().into();
@@ -75,10 +104,14 @@ impl Administrator {
     }
 }
 
+pub type AdminResult<T> = Result<T, AdministratorError>;
+
 #[derive(Error, Debug)]
 pub enum AdministratorError {
     #[error("Database error ocurrs")]
     DatabaseErr(#[from] DbErr),
     #[error("Account not found: {0}")]
     NotFound(String),
+    #[error("Incorrect password")]
+    IncorrectPassword,
 }

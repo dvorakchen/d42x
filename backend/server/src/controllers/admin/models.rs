@@ -1,3 +1,4 @@
+use sea_orm::prelude::Uuid;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -19,7 +20,46 @@ pub(crate) struct LogInRes {
 #[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct ChangePwdReq {
     #[validate(length(min = 6, code = "hashed_password_current empty"))]
-    hashed_password_current: String,
+    pub hashed_password_current: String,
     #[validate(length(min = 6, code = "hashed_password_new empty"))]
-    hashed_password_new: String,
+    pub hashed_password_new: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Validate)]
+pub struct PostMemesReq {
+    #[validate(length(min = 1))]
+    pub memes: Vec<Meme>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Validate)]
+pub struct Meme {
+    #[validate(length(min = 1))]
+    pub url: String,
+    pub hash: String,
+    pub bed_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MemeItemRes {
+    pub id: Uuid,
+    pub url: String,
+    pub format: String,
+    pub status: String,
+    pub show_at: String,
+    pub created_at: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Pagination<T>
+where
+    T: Sized,
+{
+    /// current page number
+    pub page: usize,
+    /// list size per page
+    pub size: usize,
+    /// total page count
+    pub total: usize,
+    /// list data
+    pub list: Vec<T>,
 }
