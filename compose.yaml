@@ -1,0 +1,4 @@
+name: d42x
+include:
+  - ./admin/compose.yaml
+  - ./backend/compose.yaml

@@ -776,6 +776,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "d42x-server"
+version = "0.1.0"
+dependencies = [
+ "askama",
+ "askama_axum",
+ "axum",
+ "bcrypt",
+ "chrono",
+ "clap",
+ "db_entity",
+ "dotenv",
+ "hex",
+ "hmac",
+ "jwt",
+ "lazy_static",
+ "listenfd",
+ "migration",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "sha2",
+ "soft-aes",
+ "thiserror 2.0.11",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "validator",
+]
+
+[[package]]
 name = "darling"
 version = "0.20.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2530,37 +2561,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "askama",
- "askama_axum",
- "axum",
- "bcrypt",
- "chrono",
- "clap",
- "db_entity",
- "dotenv",
- "hex",
- "hmac",
- "jwt",
- "lazy_static",
- "listenfd",
- "migration",
- "sea-orm",
- "serde",
- "serde_json",
- "sha2",
- "soft-aes",
- "thiserror 2.0.11",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "validator",
 ]
 
 [[package]]

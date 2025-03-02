@@ -1,0 +1,41 @@
+{% extends "base.html" %} {% block title %} - 呼唤爱与和平 {% endblock %} {%
+block content %}
+
+<main class="p-2 flex flex-col">
+  <ul id="memesList" class="flex flex-col gap-4">
+    {% for meme in list %}
+    <li class="border-t p-2">
+      <div class="w-48 h-48">
+        <img
+          class="w-fit h-full object-contain cursor-zoom-in"
+          src="{{meme.url}}"
+          alt="image"
+          data-meme
+        />
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</main>
+
+<script defer>
+  const memesList = document.getElementById("memesList");
+  memesList.addEventListener("click", (ev) => {
+    const tar = ev.target;
+    if (tar.nodeName === "IMG" && tar.hasAttribute("data-meme")) {
+      const parent = tar.parentNode;
+      parent.classList.toggle("w-48");
+      parent.classList.toggle("h-48");
+      tar.classList.toggle("cursor-zoom-in");
+      tar.classList.toggle("cursor-zoom-out");
+    }
+  });
+
+  let cur_page = 1;
+  let total_page = `{{total}}`;
+  total_page = +total_page;
+
+  function nextPage() {}
+</script>
+
+{% endblock %}

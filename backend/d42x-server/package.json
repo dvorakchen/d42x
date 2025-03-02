@@ -1,0 +1,28 @@
+{
+  "name": "wwwroot",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "run-p dev:*",
+    "dev:server": "systemfd --no-pid -s 9876 -- cargo watch -x 'r -- '",
+    "dev:css": "bun run css -- --watch",
+    "dev:ts": "bun run ts -- --watch",
+    "build": "run-s build:*",
+    "build:css": "bun run css -- --minify",
+    "build:ts": "bun run ts -- --minify",
+    "build:server": "cargo build --release",
+    "css": "bunx @tailwindcss/cli -i ./input.css -o ./wwwroot/main.css",
+    "ts": "bun build ./base --outfile=wwwroot/base.js"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.9",
+    "@types/bun": "latest",
+    "npm-run-all": "^4.1.5",
+    "tailwindcss": "^4.0.9"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {}
+}

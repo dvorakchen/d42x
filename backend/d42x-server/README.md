@@ -2,10 +2,11 @@
 
 ## Dev
 
+You need Bun.
 For Hot-Reload, install `cargo install systemfd cargo-watch`
 
 ```sh
-systemfd --no-pid -s <PORT> -- cargo watch -x 'r -- '
+bun dev
 ```
 
 The `PORT` above as in `.env` file `ADDRESS` field
@@ -13,5 +14,5 @@ The `PORT` above as in `.env` file `ADDRESS` field
 ## Build Release
 
 ```sh
-cargo build --release
+bun run build
 ```

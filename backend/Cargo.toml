@@ -1,5 +1,5 @@
 [workspace]
-members = ["server", "migration", "db_entity"]
+members = ["d42x-server", "migration", "db_entity"]
 resolver = "2"
 
 [workspace.package]

@@ -1,0 +1,9 @@
+/target
+/node_modules
+/wwwroot
+/Dockerfile
+/compose.yaml
+/README.md
+/Licence
+/.vscode
+/docs

@@ -1,0 +1,14 @@
+services:
+  admin-viewer:
+    depends_on:
+      - server
+  server:
+    environment:
+      - AES_KEY=s2d5d25s3ds5s2d5
+      - AES_IV=d3a25d3a5d6a2b8q
+      - DATABASE_URL=postgres://admin:v3ag48wa354gsdf32a@database:5432/d42x_main
+      - CORS=http://localhost:3001
+  database:
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=v3ag48wa354gsdf32a

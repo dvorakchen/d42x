@@ -1,0 +1,39 @@
+name: d42x-main
+services:
+  server:
+    build:
+      context: .
+      target: final
+    container_name: d42x-main
+    depends_on:
+      - database
+    restart: unless-stopped
+    networks:
+      - backend-network
+    ports:
+      - 9876:9876
+    environment:
+      - AES_KEY=s2d5d25s3ds5s2d5
+      - AES_IV=d3a25d3a5d6a2b8q
+      - DATABASE_URL=postgres://admin:123123@database:5432/d42x_main
+      - ADDRESS=0.0.0.0:9876
+      - CORS=http://localhost:3001
+      - ISS=www.d42x.com
+      - AUD=api.d42x.com
+      - EXP=604800
+  database:
+    image: "hub.aiursoft.cn/postgres:latest"
+    container_name: postgres
+    # ports:
+    # - 5432:5432
+    networks:
+      - backend-network
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=123123
+      - POSTGRES_DB=d42x_main
+    volumes:
+      - ~/data/postgresql:/var/lib/postgresql/data
+
+networks:
+  backend-network:

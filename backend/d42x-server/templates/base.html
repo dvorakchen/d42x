@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="keywords" content="网络梗图,梗图,Meme,摸鱼" />
+    <meta name="description" content="网络梗图,梗图" />
+    <title>D42X {% block title %} {% endblock %}</title>
+    <link href="/wwwroot/main.css" rel="stylesheet" />
+    {% block head %} {% endblock %}
+  </head>
+  <body>
+    <div class="max-w-full w-4xl m-auto pt-16">
+      <h1 class="text-4xl font-bold">D42X</h1>
+      <nav></nav>
+      <div class="flex">
+        <section class="w-3/4 p-2">
+          {% block content %} {% endblock %} {% block script %} {% endblock %}
+        </section>
+        <section class="w-1/4"></section>
+      </div>
+    </div>
+  </body>
+</html>

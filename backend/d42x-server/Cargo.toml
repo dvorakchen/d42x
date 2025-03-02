@@ -1,5 +1,5 @@
 [package]
-name = "server"
+name = "d42x-server"
 version = "0.1.0"
 edition = { workspace = true }
 

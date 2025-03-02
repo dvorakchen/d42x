@@ -10,7 +10,10 @@ use tokio::net::TcpListener;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use tracing::{debug, info};
 
-use crate::controllers::admin::{change_password, list_memes, log_in, post_memes};
+use crate::controllers::{
+    admin::{change_password, list_memes, log_in, post_memes},
+    client::ui::home,
+};
 
 pub struct App {
     address: String,
@@ -25,7 +28,7 @@ impl App {
             .nest("/admin", Self::admin_routes())
             .nest("/client", Self::client_routes());
         let mut app = Router::new()
-            .route("/", get(|| async { "hello" }))
+            .route("/", get(home))
             .nest("/api", api_routes)
             .nest_service("/wwwroot", tower_http::services::ServeDir::new("wwwroot"))
             .nest_service(
