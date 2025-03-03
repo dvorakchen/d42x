@@ -1,6 +1,1 @@
-console.log('ee')
-function foo() {
-
-}
-
-foo();
+const KEY = ";eo";

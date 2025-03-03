@@ -12,7 +12,7 @@ use tracing::{debug, info};
 
 use crate::controllers::{
     admin::{change_password, list_memes, log_in, post_memes},
-    client::ui::home,
+    client::ui::{get_categories, home},
 };
 
 pub struct App {
@@ -42,7 +42,7 @@ impl App {
     }
 
     fn client_routes() -> Router {
-        Router::new()
+        Router::new().route("/categories", get(get_categories))
     }
 
     fn admin_routes() -> Router {

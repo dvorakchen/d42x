@@ -1,13 +1,17 @@
 {% extends "base.html" %} {% block title %} - 呼唤爱与和平 {% endblock %} {%
 block content %}
 
-<main class="p-2 flex flex-col">
-  <ul id="memesList" class="flex flex-col gap-4">
+<main class="p-2 flex flex-col gap-8 w-full">
+  <ul id="memesList" class="flex flex-col gap-6">
     {% for meme in list %}
-    <li class="border-t p-2">
-      <div class="w-48 h-48">
+    <li class="p-2">
+      <div class="flex gap-4 mb-2 text-sm">
+        <span class="font-bold">dvorak</span>
+        <span>2025-02-05 21:21</span>
+      </div>
+      <div class="p-3 w-fit border border-base-content rounded-lg">
         <img
-          class="w-fit h-full object-contain cursor-zoom-in"
+          class="w-48 object-contain rounded-lg cursor-zoom-in"
           src="{{meme.url}}"
           alt="image"
           data-meme
@@ -16,6 +20,10 @@ block content %}
     </li>
     {% endfor %}
   </ul>
+
+  <div class="w-auto flex justify-center">
+    <button class="btn btn-primary" id="loadMore">加载更多</button>
+  </div>
 </main>
 
 <script defer>
@@ -23,19 +31,27 @@ block content %}
   memesList.addEventListener("click", (ev) => {
     const tar = ev.target;
     if (tar.nodeName === "IMG" && tar.hasAttribute("data-meme")) {
-      const parent = tar.parentNode;
-      parent.classList.toggle("w-48");
-      parent.classList.toggle("h-48");
+      tar.classList.toggle("w-48");
       tar.classList.toggle("cursor-zoom-in");
       tar.classList.toggle("cursor-zoom-out");
     }
   });
 
-  let cur_page = 1;
-  let total_page = `{{total}}`;
-  total_page = +total_page;
+  let curPage = 1;
+  let totalPage = `{{total}}`;
+  totalPage = +totalPage;
 
   function nextPage() {}
+
+  const loadMoreBtn = document.getElementById("loadMore");
+  loadMoreBtn.addEventListener("click", (ev) => {
+    const btn = ev.target;
+    if (curPage >= totalPage) {
+      btn.innerText = "没有更多了";
+      btn.setAttribute("disabled", "true");
+      return;
+    }
+  });
 </script>
 
 {% endblock %}

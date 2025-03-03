@@ -1,4 +1,4 @@
-use db_entity::targets;
+use db_entity::categories;
 use sea_orm_migration::{
     prelude::*,
     schema::*,
@@ -14,20 +14,21 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Targets::Table)
+                    .table(Categories::Table)
                     .if_not_exists()
-                    .col(uuid(Targets::Id).primary_key())
-                    .col(string(Targets::Name))
-                    .col(timestamp_with_time_zone(Targets::CreatedDateTime))
+                    .col(uuid(Categories::Id).primary_key())
+                    .col(uuid(Categories::Parent))
+                    .col(string(Categories::Name))
+                    .col(timestamp_with_time_zone(Categories::CreatedDateTime))
                     .to_owned(),
             )
             .await?;
 
         let db = manager.get_connection();
 
-        targets::ActiveModel {
+        categories::ActiveModel {
             name: Set(String::from("meme")),
-            ..targets::ActiveModel::new()
+            ..categories::ActiveModel::new()
         }
         .insert(db)
         .await?;
@@ -37,16 +38,18 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Targets::Table).to_owned())
+            .drop_table(Table::drop().table(Categories::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum Targets {
-    #[sea_orm(iden = "targets")]
+enum Categories {
+    #[sea_orm(iden = "categories")]
     Table,
     Id,
+    #[sea_orm(iden = "parent")]
+    Parent,
     #[sea_orm(iden = "name")]
     Name,
     #[sea_orm(iden = "created_date_time")]

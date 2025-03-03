@@ -26,7 +26,7 @@ impl MigrationTrait for Migration {
                     .col(string(Memes::IdAddr))
                     .col(integer(Memes::Likes))
                     .col(integer(Memes::Unlikes))
-                    .col(string(Memes::Targets))
+                    .col(string(Memes::Categories))
                     .col(string(Memes::Status))
                     .col(string(Memes::Bed))
                     .col(string(Memes::BedId))
@@ -41,7 +41,17 @@ impl MigrationTrait for Migration {
 
         memes::ActiveModel {
             url: Set(String::from(
-                "https://pic1.imgdb.cn/item/67c573ddd0e0a243d40abd09.webp",
+                "https://dl2.img.timecdn.cn/2020/03/27/1014040515.jpg",
+            )),
+            status: Set(memes::Status::Published),
+            ..memes::ActiveModel::new()
+        }
+        .insert(db)
+        .await?;
+
+        memes::ActiveModel {
+            url: Set(String::from(
+                "https://dl.img.timecdn.cn/2020/04/07/1584708547689.png",
             )),
             status: Set(memes::Status::Published),
             ..memes::ActiveModel::new()
@@ -82,8 +92,8 @@ enum Memes {
     Likes,
     #[sea_orm(iden = "unlikes")]
     Unlikes,
-    #[sea_orm(iden = "targets")]
-    Targets,
+    #[sea_orm(iden = "categories")]
+    Categories,
     #[sea_orm(iden = "status")]
     Status,
     #[sea_orm(iden = "bed")]

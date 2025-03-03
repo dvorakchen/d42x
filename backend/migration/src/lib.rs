@@ -2,7 +2,7 @@ pub use sea_orm_migration::prelude::*;
 
 mod m20220101_000001_create_table;
 mod m20250225_082047_create_memes;
-mod m20250303_085702_create_targets;
+mod m20250303_085702_create_categories;
 
 pub struct Migrator;
 
@@ -12,7 +12,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(m20220101_000001_create_table::Migration),
             Box::new(m20250225_082047_create_memes::Migration),
-            Box::new(m20250303_085702_create_targets::Migration),
+            Box::new(m20250303_085702_create_categories::Migration),
         ]
     }
 }

@@ -1,11 +1,14 @@
 use askama::Template;
 use askama_axum::{IntoResponse, Response};
+use axum::{Json, extract::Query};
 use chrono::{DateTime, FixedOffset, Utc};
-use db_entity::memes;
-use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder};
+use db_entity::{categories, memes};
+use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, prelude::Uuid};
 use serde::Deserialize;
 
 use crate::db::DbHelper;
+
+use super::models::CategoryItem;
 
 #[derive(Template)]
 #[template(path = "home.html")]
@@ -22,11 +25,11 @@ pub struct Meme {
 }
 
 #[derive(Deserialize)]
-pub struct Pagination {
-    pub page: u64,
+pub struct HomeQuery {
+    pub category: Option<String>,
 }
 
-pub async fn home() -> Response {
+pub async fn home(Query(_query): Query<HomeQuery>) -> Response {
     const SIZE_PER_PAGE: u64 = 20;
     let db = DbHelper::get_connection().await.unwrap();
 
@@ -48,7 +51,7 @@ pub async fn home() -> Response {
             likes: item.likes as usize,
             unlikes: item.unlikes as usize,
             targets: item
-                .targets
+                .categories
                 .split(';')
                 .filter_map(|c| {
                     if c.is_empty() {
@@ -64,4 +67,24 @@ pub async fn home() -> Response {
     let total = paged_memes.num_pages().await.unwrap();
 
     HomeTemplate { total, list }.into_response()
+}
+
+/// get all top categories
+pub async fn get_categories() -> Json<Vec<CategoryItem>> {
+    let db = DbHelper::get_connection().await.unwrap();
+
+    let category_list: Vec<_> = categories::Entity::find()
+        .filter(categories::Column::Parent.eq(Uuid::nil()))
+        .order_by_asc(categories::Column::Name)
+        .all(&db)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|category| CategoryItem {
+            id: category.id,
+            name: category.name,
+        })
+        .collect();
+
+    Json(category_list)
 }
