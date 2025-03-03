@@ -17,6 +17,7 @@ pub struct Model {
     pub id_addr: String,
     pub likes: i32,
     pub unlikes: i32,
+    /// ;target_1;target_2;
     pub targets: String,
     pub status: Status,
     pub bed: Bed,
@@ -74,6 +75,8 @@ impl TryFrom<&str> for Status {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
 
+const DEFAULT_TARGET: &str = "meme";
+
 impl ActiveModelBehavior for ActiveModel {
     fn new() -> Self {
         let now = Utc::now().into();
@@ -88,7 +91,7 @@ impl ActiveModelBehavior for ActiveModel {
             id_addr: Set(String::new()),
             likes: Set(0),
             unlikes: Set(0),
-            targets: Set(String::new()),
+            targets: Set(format!(";{};", DEFAULT_TARGET)),
             status: Set(Status::Uncensored),
             bed: Set(Bed::SuperBed),
             bed_id: Set(String::new()),

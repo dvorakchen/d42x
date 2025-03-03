@@ -18,6 +18,7 @@ pub struct Meme {
     pub url: String,
     pub likes: usize,
     pub unlikes: usize,
+    pub targets: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -46,6 +47,17 @@ pub async fn home() -> Response {
             url: item.url,
             likes: item.likes as usize,
             unlikes: item.unlikes as usize,
+            targets: item
+                .targets
+                .split(';')
+                .filter_map(|c| {
+                    if c.is_empty() {
+                        None
+                    } else {
+                        Some(c.to_string())
+                    }
+                })
+                .collect(),
         })
         .collect();
 

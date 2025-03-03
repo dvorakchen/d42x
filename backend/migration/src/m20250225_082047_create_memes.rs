@@ -1,4 +1,9 @@
-use sea_orm_migration::{prelude::*, schema::*};
+use db_entity::memes;
+use sea_orm_migration::{
+    prelude::*,
+    schema::*,
+    sea_orm::{ActiveModelBehavior, ActiveModelTrait, Set},
+};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -30,7 +35,21 @@ impl MigrationTrait for Migration {
                     .col(timestamp_with_time_zone(Memes::LastActiityDateTime))
                     .to_owned(),
             )
-            .await
+            .await?;
+
+        let db = manager.get_connection();
+
+        memes::ActiveModel {
+            url: Set(String::from(
+                "https://pic1.imgdb.cn/item/67c573ddd0e0a243d40abd09.webp",
+            )),
+            status: Set(memes::Status::Published),
+            ..memes::ActiveModel::new()
+        }
+        .insert(db)
+        .await?;
+
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {

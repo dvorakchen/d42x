@@ -2,4 +2,5 @@
 
 pub mod accounts;
 pub mod memes;
+pub mod targets;
 pub mod prelude;
