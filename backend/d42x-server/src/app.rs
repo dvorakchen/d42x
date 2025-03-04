@@ -12,7 +12,7 @@ use tracing::{debug, info};
 
 use crate::controllers::{
     admin::{change_password, list_memes, log_in, post_memes},
-    client::ui::{get_categories, home},
+    client::ui::{get_categories, get_meme_list},
 };
 
 pub struct App {
@@ -28,9 +28,16 @@ impl App {
             .nest("/admin", Self::admin_routes())
             .nest("/client", Self::client_routes());
         let mut app = Router::new()
-            .route("/", get(home))
+            // .route("/", get(home))
             .nest("/api", api_routes)
-            .nest_service("/wwwroot", tower_http::services::ServeDir::new("wwwroot"))
+            .route_service(
+                "/",
+                tower_http::services::ServeDir::new("wwwroot/index.html"),
+            )
+            .nest_service(
+                "/assets",
+                tower_http::services::ServeDir::new("wwwroot/assets"),
+            )
             .nest_service(
                 "/favicon.ico",
                 tower_http::services::ServeDir::new("wwwroot/favicon.ico"),
@@ -42,7 +49,9 @@ impl App {
     }
 
     fn client_routes() -> Router {
-        Router::new().route("/categories", get(get_categories))
+        Router::new()
+            .route("/categories", get(get_categories))
+            .route("/memes", get(get_meme_list))
     }
 
     fn admin_routes() -> Router {
@@ -55,13 +64,19 @@ impl App {
 
     fn cors(&self) -> CorsLayer {
         info!("Cors allow origins: {}", self.cors);
-
+        const HOST_SEPARATE: &str = ";";
         const ALL_ORIGINS: &str = "*";
+
         let allow_orgin = if self.cors == ALL_ORIGINS {
             debug!("cors allow any");
             AllowOrigin::any()
         } else {
-            AllowOrigin::from(self.cors.clone().parse::<HeaderValue>().unwrap())
+            let hosts: Vec<_> = self
+                .cors
+                .split(HOST_SEPARATE)
+                .map(|host| HeaderValue::from_str(host).unwrap())
+                .collect();
+            AllowOrigin::list(hosts)
         };
 
         CorsLayer::new()

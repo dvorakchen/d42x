@@ -1,56 +1,73 @@
-use askama::Template;
-use askama_axum::{IntoResponse, Response};
 use axum::{Json, extract::Query};
 use chrono::{DateTime, FixedOffset, Utc};
 use db_entity::{categories, memes};
 use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, prelude::Uuid};
 use serde::Deserialize;
 
-use crate::db::DbHelper;
+use crate::{config::AllowMemeFormats, db::DbHelper};
 
-use super::models::CategoryItem;
+use super::models::{CategoryItem, PaginatedMemeList};
 
-#[derive(Template)]
-#[template(path = "home.html")]
-pub struct HomeTemplate {
-    pub total: u64,
-    pub list: Vec<Meme>,
-}
-
-pub struct Meme {
-    pub url: String,
-    pub likes: usize,
-    pub unlikes: usize,
-    pub targets: Vec<String>,
-}
+const SIZE_PER_PAGE: u64 = 20;
 
 #[derive(Deserialize)]
-pub struct HomeQuery {
+pub struct Pagination {
+    pub page: u64,
     pub category: Option<String>,
 }
 
-pub async fn home(Query(_query): Query<HomeQuery>) -> Response {
-    const SIZE_PER_PAGE: u64 = 20;
+pub async fn get_meme_list(Query(pagination): Query<Pagination>) -> Json<PaginatedMemeList> {
+    let paginated_memes = get_meme_list_pagination(pagination.page, pagination.category).await;
+
+    Json(PaginatedMemeList {
+        page: paginated_memes.page,
+        total: paginated_memes.total_page,
+        list: paginated_memes.list,
+    })
+}
+
+struct PaginatedMemes {
+    pub page: u64,
+    pub total_page: u64,
+    pub list: Vec<super::models::Meme>,
+}
+
+async fn get_meme_list_pagination(page: u64, category: Option<String>) -> PaginatedMemes {
+    let fetch_page = if page > 0 { page - 1 } else { page };
+
     let db = DbHelper::get_connection().await.unwrap();
 
     let now: DateTime<FixedOffset> = Utc::now().into();
 
-    let paged_memes = memes::Entity::find()
+    let mut paged_memes = memes::Entity::find();
+
+    match category {
+        Some(value) if !value.is_empty() => {
+            paged_memes =
+                paged_memes.filter(memes::Column::Categories.contains(format!(";{};", value)))
+        }
+        _ => {}
+    }
+
+    let paged_memes = paged_memes
         .filter(memes::Column::Status.eq(memes::Status::Published))
         .filter(memes::Column::ShowDateTime.lt(now))
         .order_by_desc(memes::Column::ShowDateTime)
         .paginate(&db, SIZE_PER_PAGE);
 
-    let list = paged_memes
-        .fetch_page(0)
+    let list: Vec<_> = paged_memes
+        .fetch_page(fetch_page)
         .await
         .unwrap()
         .into_iter()
-        .map(|item| Meme {
+        .map(|item| super::models::Meme {
+            id: item.id,
             url: item.url,
+            cover: item.cover,
+            format: AllowMemeFormats::try_from(item.format.as_str()).unwrap(),
             likes: item.likes as usize,
             unlikes: item.unlikes as usize,
-            targets: item
+            categories: item
                 .categories
                 .split(';')
                 .filter_map(|c| {
@@ -61,12 +78,18 @@ pub async fn home(Query(_query): Query<HomeQuery>) -> Response {
                     }
                 })
                 .collect(),
+            nickname: item.nickname,
+            show_date_time: item.show_date_time,
         })
         .collect();
 
-    let total = paged_memes.num_pages().await.unwrap();
+    let total_page = paged_memes.num_pages().await.unwrap();
 
-    HomeTemplate { total, list }.into_response()
+    PaginatedMemes {
+        page,
+        total_page,
+        list,
+    }
 }
 
 /// get all top categories

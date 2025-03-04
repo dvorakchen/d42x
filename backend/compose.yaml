@@ -24,8 +24,6 @@ services:
   database:
     image: "hub.aiursoft.cn/postgres:latest"
     container_name: postgres
-    # ports:
-    # - 5432:5432
     networks:
       - backend-network
     environment:

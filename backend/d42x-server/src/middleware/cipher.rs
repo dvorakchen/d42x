@@ -19,11 +19,11 @@ lazy_static! {
 
 pub async fn cipher_middleware(mut request: Request, next: Next) -> Response {
     let mut need_cipher = false;
-    let is_admin_api = request.uri().to_string().starts_with("/api/admin/");
+    let is_api = request.uri().to_string().starts_with("/api/");
     let is_get = Method::GET == *request.method();
 
     match *request.method() {
-        Method::POST | Method::DELETE | Method::PUT if is_admin_api => {
+        Method::POST | Method::DELETE | Method::PUT if is_api => {
             need_cipher = true;
         }
         _ => {}
@@ -45,7 +45,7 @@ pub async fn cipher_middleware(mut request: Request, next: Next) -> Response {
 
     let mut response = next.run(request).await;
 
-    if is_get && is_admin_api && !need_cipher {
+    if is_get && is_api && !need_cipher {
         need_cipher = true;
     }
 

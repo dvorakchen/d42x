@@ -2,7 +2,7 @@ ARG APP_NAME=d42x-server
 
 # Build Rust
 
-FROM docker.1ms.run/rust:slim AS chef
+FROM hub.aiursoft.cn/rust:slim AS chef
 # FROM hub.aiursoft.cn/rust:latest AS chef
 LABEL author="DvorakChen"
 LABEL email="dvorakchen@outlook.com"
@@ -35,19 +35,20 @@ COPY . .
 RUN cargo build --release
 
 # Build JavaScript
-FROM docker.1ms.run/oven/bun:slim as bun
+FROM hub.aiursoft.cn/oven/bun:slim as bun
 
 WORKDIR /app
 
-COPY ./d42x-server ./d42x-server
-
-WORKDIR /app/d42x-server
+COPY ./d42x-ui/package.json ./package.json
+COPY ./d42x-ui/bunfig.toml ./bunfig.toml
+COPY ./d42x-ui/bun.lock ./bun.lock
 
 RUN bun i
-RUN bun run build:css
-RUN bun run build:ts
 
-COPY ./d42x-server/wwwroot/ /app/wwwroot/
+COPY ./d42x-ui/. .
+
+RUN bun i
+RUN bun run build
 
 # RUN
 
@@ -58,7 +59,7 @@ ARG APP_NAME
 USER root
 
 COPY --from=rust-build /app/target/release/${APP_NAME} /bin/server
-COPY --from=bun /app/wwwroot /bin/wwwroot
+COPY --from=bun /app/dist /bin/wwwroot
 
 EXPOSE 9876
 

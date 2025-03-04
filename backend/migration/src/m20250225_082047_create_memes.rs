@@ -18,6 +18,7 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(uuid(Memes::Id).primary_key())
                     .col(string(Memes::Url))
+                    .col(string(Memes::Cover))
                     .col(string(Memes::Source))
                     .col(string(Memes::Format))
                     .col(string(Memes::Hash))
@@ -43,7 +44,10 @@ impl MigrationTrait for Migration {
             url: Set(String::from(
                 "https://dl2.img.timecdn.cn/2020/03/27/1014040515.jpg",
             )),
+            format: Set(String::from("jpg")),
+            cover: Set(String::from("")),
             status: Set(memes::Status::Published),
+            nickname: Set(String::from("dvorak")),
             ..memes::ActiveModel::new()
         }
         .insert(db)
@@ -53,7 +57,10 @@ impl MigrationTrait for Migration {
             url: Set(String::from(
                 "https://dl.img.timecdn.cn/2020/04/07/1584708547689.png",
             )),
+            format: Set(String::from("png")),
+            cover: Set(String::from("")),
             status: Set(memes::Status::Published),
+            nickname: Set(String::from("dvorak")),
             ..memes::ActiveModel::new()
         }
         .insert(db)
@@ -76,6 +83,8 @@ enum Memes {
     Id,
     #[sea_orm(iden = "url")]
     Url,
+    #[sea_orm(iden = "cover")]
+    Cover,
     #[sea_orm(iden = "source")]
     Source,
     #[sea_orm(iden = "format")]

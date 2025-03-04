@@ -1,6 +1,7 @@
 use hmac::Mac;
 use lazy_static::lazy_static;
 use sea_orm::prelude::Uuid;
+use serde::Serialize;
 use sha2::Sha256;
 use soft_aes::aes::AES_BLOCK_SIZE;
 
@@ -26,4 +27,30 @@ lazy_static! {
     pub static ref ISS: String = dotenv::var("ISS").expect("not found ISS");
     pub static ref AUD: String = dotenv::var("AUD").expect("not found AUD");
     pub static ref EXP: usize = dotenv::var("EXP").expect("not found EXP").parse().unwrap();
+}
+
+#[derive(Serialize, Debug)]
+pub enum AllowMemeFormats {
+    JPG,
+    JPEG,
+    PNG,
+    GIF,
+    WEBP,
+    WEBM,
+}
+
+impl TryFrom<&str> for AllowMemeFormats {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value.to_lowercase().as_ref() {
+            "jpg" => Ok(Self::JPG),
+            "jpeg" => Ok(Self::JPEG),
+            "png" => Ok(Self::PNG),
+            "gif" => Ok(Self::GIF),
+            "webp" => Ok(Self::WEBP),
+            "webm" => Ok(Self::WEBM),
+            _ => Err(format!("unsupport format: {}", value)),
+        }
+    }
 }

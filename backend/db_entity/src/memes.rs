@@ -9,6 +9,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: Uuid,
     pub url: String,
+    pub cover: String,
     pub source: String,
     pub format: String,
     pub hash: String,
@@ -81,6 +82,7 @@ impl ActiveModelBehavior for ActiveModel {
         Self {
             id: Set(Uuid::now_v7()),
             url: Set(String::new()),
+            cover: Set(String::new()),
             source: Set(String::new()),
             format: Set(String::new()),
             hash: Set(String::new()),
