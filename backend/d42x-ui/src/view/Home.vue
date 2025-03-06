@@ -29,7 +29,11 @@ import MemeList from "../components/MemeList.vue";
         Copyright © {{ new Date().getFullYear() }} - All right reserved by D42X
         Dvorak
       </p>
-      <p>粤ICP备2024191084号-2</p>
+      <p>
+        <a href="https://beian.miit.gov.cn/" target="_blank"
+          >粤ICP备2024191084号-2</a
+        >
+      </p>
     </aside>
   </footer>
 </template>
