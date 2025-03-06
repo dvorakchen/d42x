@@ -29,7 +29,7 @@ import MemeList from "../components/MemeList.vue";
         Copyright © {{ new Date().getFullYear() }} - All right reserved by D42X
         Dvorak
       </p>
-      <p>备114514</p>
+      <p>粤ICP备2024191084号-2</p>
     </aside>
   </footer>
 </template>
