@@ -20,12 +20,18 @@ pub struct PaginatedMemeList {
 #[derive(Serialize)]
 pub struct Meme {
     pub id: Uuid,
-    pub url: String,
-    pub cover: String,
-    pub format: AllowMemeFormats,
     pub likes: usize,
     pub unlikes: usize,
     pub categories: Vec<String>,
     pub nickname: String,
     pub show_date_time: DateTime<FixedOffset>,
+    pub list: Vec<MemeUrl>,
+}
+
+#[derive(Serialize)]
+pub struct MemeUrl {
+    pub id: Uuid,
+    pub url: String,
+    pub cover: String,
+    pub format: AllowMemeFormats,
 }

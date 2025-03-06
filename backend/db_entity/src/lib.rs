@@ -3,6 +3,7 @@
 pub mod accounts;
 pub mod categories;
 pub mod memes;
+pub mod meme_urls;
 pub mod prelude;
 
-pub(crate) const DEFAULT_CATEGORY: &str = "meme";
+pub const DEFAULT_CATEGORY: &str = "meme";

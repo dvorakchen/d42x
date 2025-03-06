@@ -1,12 +1,14 @@
 use axum::{Json, extract::Query};
 use chrono::{DateTime, FixedOffset, Utc};
 use db_entity::{categories, memes};
-use sea_orm::{ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, prelude::Uuid};
+use sea_orm::{
+    ColumnTrait, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QueryOrder, prelude::Uuid,
+};
 use serde::Deserialize;
 
-use crate::{config::AllowMemeFormats, db::DbHelper};
+use crate::db::DbHelper;
 
-use super::models::{CategoryItem, PaginatedMemeList};
+use super::models::{CategoryItem, MemeUrl, PaginatedMemeList};
 
 const SIZE_PER_PAGE: u64 = 20;
 
@@ -55,16 +57,13 @@ async fn get_meme_list_pagination(page: u64, category: Option<String>) -> Pagina
         .order_by_desc(memes::Column::ShowDateTime)
         .paginate(&db, SIZE_PER_PAGE);
 
-    let list: Vec<_> = paged_memes
-        .fetch_page(fetch_page)
-        .await
-        .unwrap()
-        .into_iter()
-        .map(|item| super::models::Meme {
+    let list: Vec<_> = paged_memes.fetch_page(fetch_page).await.unwrap();
+
+    let mut url_list = vec![];
+
+    for item in list {
+        url_list.push(super::models::Meme {
             id: item.id,
-            url: item.url,
-            cover: item.cover,
-            format: AllowMemeFormats::try_from(item.format.as_str()).unwrap(),
             likes: item.likes as usize,
             unlikes: item.unlikes as usize,
             categories: item
@@ -78,17 +77,29 @@ async fn get_meme_list_pagination(page: u64, category: Option<String>) -> Pagina
                     }
                 })
                 .collect(),
-            nickname: item.nickname,
+            nickname: item.nickname.clone(),
             show_date_time: item.show_date_time,
-        })
-        .collect();
-
+            list: item
+                .find_related(db_entity::meme_urls::Entity)
+                .all(&db)
+                .await
+                .unwrap()
+                .into_iter()
+                .map(|e| MemeUrl {
+                    id: e.id,
+                    url: e.url,
+                    cover: e.cover,
+                    format: e.format.as_str().try_into().unwrap(),
+                })
+                .collect(),
+        });
+    }
     let total_page = paged_memes.num_pages().await.unwrap();
 
     PaginatedMemes {
         page,
         total_page,
-        list,
+        list: url_list,
     }
 }
 

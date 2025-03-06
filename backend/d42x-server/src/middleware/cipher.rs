@@ -72,7 +72,6 @@ async fn decrypt_body(body: Body) -> Body {
     }
 
     let body = String::from_utf8(body.to_vec()).unwrap();
-    debug!("encrypted body: {}", body);
     let body = hex::decode(body).expect("decrypt fail, hex_decode fail");
 
     let de_body = aes_dec_cbc(&body, config::KEY.as_bytes(), &config::IV, *PADDING)
@@ -86,13 +85,11 @@ async fn decrypt_body(body: Body) -> Body {
 async fn encrypt_body(body: Body) -> Body {
     let body = to_bytes(body, usize::MAX).await.unwrap();
 
-    debug!("len: {}", body.len());
     if body.len() == 0 {
         return Body::from(body);
     }
 
     let body = String::from_utf8(body.to_vec()).unwrap();
-    debug!("body: {}", body);
 
     debug!("raw body: {}", body);
     let body = aes_enc_cbc(
@@ -103,7 +100,6 @@ async fn encrypt_body(body: Body) -> Body {
     )
     .expect("msg");
     let body = hex::encode(body);
-    debug!("encoded body: {}", body);
 
     Body::from(body)
 }

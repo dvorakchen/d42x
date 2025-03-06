@@ -1,7 +1,9 @@
+use std::fmt::Display;
+
 use hmac::Mac;
 use lazy_static::lazy_static;
 use sea_orm::prelude::Uuid;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use soft_aes::aes::AES_BLOCK_SIZE;
 
@@ -29,7 +31,7 @@ lazy_static! {
     pub static ref EXP: usize = dotenv::var("EXP").expect("not found EXP").parse().unwrap();
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum AllowMemeFormats {
     JPG,
     JPEG,
@@ -52,5 +54,19 @@ impl TryFrom<&str> for AllowMemeFormats {
             "webm" => Ok(Self::WEBM),
             _ => Err(format!("unsupport format: {}", value)),
         }
+    }
+}
+
+impl Display for AllowMemeFormats {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
+            AllowMemeFormats::JPG => "JPG",
+            AllowMemeFormats::JPEG => "JPEG",
+            AllowMemeFormats::PNG => "PNG",
+            AllowMemeFormats::GIF => "GIF",
+            AllowMemeFormats::WEBP => "WEBP",
+            AllowMemeFormats::WEBM => "WEBM",
+        };
+        write!(f, "{}", value)
     }
 }

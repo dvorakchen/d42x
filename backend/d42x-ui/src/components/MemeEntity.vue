@@ -1,25 +1,20 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import type { MemeEntityModel } from "../net/models";
-import { toYYYYMMDDHHmmss } from "../utilities/date";
+import type { MemeUrlEntityModel } from "../net/models";
 import placeholderImg from "../assets/placeholder-img.png";
+import { onMounted, ref } from "vue";
 
 const props = defineProps<{
-  meme: MemeEntityModel;
+  entity: MemeUrlEntityModel;
 }>();
 
-const loading = ref(true);
-const imgUrl = ref(placeholderImg);
-
-const displayImg = new Image();
+const showUrl = ref(placeholderImg);
+const loadFile = new Image();
 
 onMounted(() => {
-  displayImg.onload = () => {
-    imgUrl.value = displayImg.src;
-    loading.value = false;
+  loadFile.onload = () => {
+    showUrl.value = props.entity.url;
   };
-
-  displayImg.src = props.meme.url;
+  loadFile.src = props.entity.url;
 });
 
 function handleZoom(ev: MouseEvent) {
@@ -31,16 +26,10 @@ function handleZoom(ev: MouseEvent) {
 </script>
 
 <template>
-  <div class="flex gap-4 mb-2 text-sm">
-    <span class="font-bold">{{ meme.nickname }}</span>
-    <span>{{ toYYYYMMDDHHmmss(meme.show_date_time) }}</span>
-  </div>
-  <div class="p-3 w-fit border border-base-content rounded-lg">
-    <img
-      class="w-48 object-contain rounded-lg cursor-zoom-in"
-      :src="imgUrl"
-      alt="image"
-      @click="handleZoom"
-    />
-  </div>
+  <img
+    class="w-48 object-contain rounded-lg cursor-zoom-in"
+    :src="showUrl"
+    alt="image"
+    @click="handleZoom"
+  />
 </template>

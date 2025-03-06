@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { getPaginatedMemeList } from "../net/meme";
 import type { MemeEntityModel } from "../net/models";
-import MemeEntity from "./MemeEntity.vue";
+import MemeSeries from "./MemeSeries.vue";
 
 const curPage = ref(0);
 const totalPage = ref(1);
@@ -38,7 +38,7 @@ async function loadMore() {
   <main class="p-2 flex flex-col gap-8 w-full">
     <ul class="flex flex-col gap-6">
       <li class="p-2" v-for="meme in memeList" :key="meme.id">
-        <MemeEntity :meme="meme" />
+        <MemeSeries :meme="meme" />
       </li>
     </ul>
 

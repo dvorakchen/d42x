@@ -1,4 +1,4 @@
-use db_entity::memes;
+use db_entity::{meme_urls, memes};
 use sea_orm_migration::{
     prelude::*,
     schema::*,
@@ -17,20 +17,14 @@ impl MigrationTrait for Migration {
                     .table(Memes::Table)
                     .if_not_exists()
                     .col(uuid(Memes::Id).primary_key())
-                    .col(string(Memes::Url))
-                    .col(string(Memes::Cover))
-                    .col(string(Memes::Source))
-                    .col(string(Memes::Format))
-                    .col(string(Memes::Hash))
                     .col(string(Memes::Nickname))
+                    .col(string(Memes::Message))
                     .col(string(Memes::Email))
                     .col(string(Memes::IdAddr))
                     .col(integer(Memes::Likes))
                     .col(integer(Memes::Unlikes))
                     .col(string(Memes::Categories))
                     .col(string(Memes::Status))
-                    .col(string(Memes::Bed))
-                    .col(string(Memes::BedId))
                     .col(timestamp_with_time_zone(Memes::ShowDateTime))
                     .col(timestamp_with_time_zone(Memes::CreatedDateTime))
                     .col(timestamp_with_time_zone(Memes::LastActiityDateTime))
@@ -38,14 +32,28 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
+        manager
+            .create_table(
+                Table::create()
+                    .table(MemeUrls::Table)
+                    .if_not_exists()
+                    .col(uuid(MemeUrls::Id).primary_key())
+                    .col(uuid(MemeUrls::MemeId))
+                    .col(string(MemeUrls::Url))
+                    .col(string(MemeUrls::Cover))
+                    .col(string(MemeUrls::Source))
+                    .col(string(MemeUrls::Format))
+                    .col(string(MemeUrls::Hash))
+                    .col(string(MemeUrls::Bed))
+                    .col(string(MemeUrls::BedId))
+                    .col(timestamp_with_time_zone(MemeUrls::CreatedDateTime))
+                    .to_owned(),
+            )
+            .await?;
+
         let db = manager.get_connection();
 
-        memes::ActiveModel {
-            url: Set(String::from(
-                "https://dl2.img.timecdn.cn/2020/03/27/1014040515.jpg",
-            )),
-            format: Set(String::from("jpg")),
-            cover: Set(String::from("")),
+        let model = memes::ActiveModel {
             status: Set(memes::Status::Published),
             nickname: Set(String::from("dvorak")),
             ..memes::ActiveModel::new()
@@ -53,15 +61,62 @@ impl MigrationTrait for Migration {
         .insert(db)
         .await?;
 
-        memes::ActiveModel {
+        meme_urls::ActiveModel {
+            meme_id: Set(model.id),
             url: Set(String::from(
-                "https://dl.img.timecdn.cn/2020/04/07/1584708547689.png",
+                "https://pic1.imgdb.cn/item/67c5b905d0e0a243d40ae56d.png",
             )),
-            format: Set(String::from("png")),
-            cover: Set(String::from("")),
+            cover: Set(String::new()),
+            source: Set(String::new()),
+            format: Set(String::from("JPG")),
+            ..meme_urls::ActiveModel::new()
+        }
+        .insert(db)
+        .await?;
+
+        meme_urls::ActiveModel {
+            meme_id: Set(model.id),
+            url: Set(String::from(
+                "https://pic1.imgdb.cn/item/67c5b228d0e0a243d40ae1ae.jpg",
+            )),
+            cover: Set(String::new()),
+            source: Set(String::new()),
+            format: Set(String::from("JPG")),
+            ..meme_urls::ActiveModel::new()
+        }
+        .insert(db)
+        .await?;
+
+        let model = memes::ActiveModel {
             status: Set(memes::Status::Published),
             nickname: Set(String::from("dvorak")),
             ..memes::ActiveModel::new()
+        }
+        .insert(db)
+        .await?;
+
+        meme_urls::ActiveModel {
+            meme_id: Set(model.id),
+            url: Set(String::from(
+                "https://pic1.imgdb.cn/item/67c5b83cd0e0a243d40ae473.png",
+            )),
+            cover: Set(String::new()),
+            source: Set(String::new()),
+            format: Set(String::from("PNG")),
+            ..meme_urls::ActiveModel::new()
+        }
+        .insert(db)
+        .await?;
+
+        meme_urls::ActiveModel {
+            meme_id: Set(model.id),
+            url: Set(String::from(
+                "https://pic1.imgdb.cn/item/67c573ddd0e0a243d40abd09.webp",
+            )),
+            cover: Set(String::new()),
+            source: Set(String::new()),
+            format: Set(String::from("WEBP")),
+            ..meme_urls::ActiveModel::new()
         }
         .insert(db)
         .await?;
@@ -81,20 +136,12 @@ enum Memes {
     #[sea_orm(iden = "memes")]
     Table,
     Id,
-    #[sea_orm(iden = "url")]
-    Url,
-    #[sea_orm(iden = "cover")]
-    Cover,
-    #[sea_orm(iden = "source")]
-    Source,
-    #[sea_orm(iden = "format")]
-    Format,
-    #[sea_orm(iden = "hash")]
-    Hash,
     #[sea_orm(iden = "nickname")]
     Nickname,
     #[sea_orm(iden = "email")]
     Email,
+    #[sea_orm(iden = "message")]
+    Message,
     #[sea_orm(iden = "id_addr")]
     IdAddr,
     #[sea_orm(iden = "likes")]
@@ -105,14 +152,35 @@ enum Memes {
     Categories,
     #[sea_orm(iden = "status")]
     Status,
-    #[sea_orm(iden = "bed")]
-    Bed,
-    #[sea_orm(iden = "bed_id")]
-    BedId,
     #[sea_orm(iden = "show_date_time")]
     ShowDateTime,
     #[sea_orm(iden = "created_date_time")]
     CreatedDateTime,
     #[sea_orm(iden = "last_actiity_date_time")]
     LastActiityDateTime,
+}
+
+#[derive(DeriveIden)]
+enum MemeUrls {
+    #[sea_orm(iden = "meme_urls")]
+    Table,
+    Id,
+    #[sea_orm(iden = "meme_id")]
+    MemeId,
+    #[sea_orm(iden = "url")]
+    Url,
+    #[sea_orm(iden = "cover")]
+    Cover,
+    #[sea_orm(iden = "source")]
+    Source,
+    #[sea_orm(iden = "format")]
+    Format,
+    #[sea_orm(iden = "hash")]
+    Hash,
+    #[sea_orm(iden = "bed")]
+    Bed,
+    #[sea_orm(iden = "bed_id")]
+    BedId,
+    #[sea_orm(iden = "created_date_time")]
+    CreatedDateTime,
 }

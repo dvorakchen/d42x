@@ -13,12 +13,17 @@ export type PaginatedModel<T> = {
 
 export type MemeEntityModel = {
   id: string;
-  cover: string;
-  url: string;
-  format: AllowMemeFormats;
   likes: number;
   unlikes: number;
   categories: string[];
   nickname: string;
   show_date_time: string;
+  list: MemeUrlEntityModel[]
+};
+
+export type MemeUrlEntityModel = {
+  id: String;
+  cover: string;
+  url: string;
+  format: AllowMemeFormats;
 };

@@ -8,11 +8,7 @@ use sea_orm::{Set, entity::prelude::*};
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: Uuid,
-    pub url: String,
-    pub cover: String,
-    pub source: String,
-    pub format: String,
-    pub hash: String,
+    pub message: String,
     pub nickname: String,
     pub email: String,
     pub id_addr: String,
@@ -21,19 +17,9 @@ pub struct Model {
     /// ;categories_1;categories_2;
     pub categories: String,
     pub status: Status,
-    pub bed: Bed,
-    pub bed_id: String,
     pub show_date_time: chrono::DateTime<FixedOffset>,
     pub created_date_time: chrono::DateTime<FixedOffset>,
     pub last_actiity_date_time: chrono::DateTime<FixedOffset>,
-}
-
-#[derive(EnumIter, DeriveActiveEnum, Clone, Debug, PartialEq, Eq)]
-#[sea_orm(rs_type = "String", db_type = "String(StringLen::N(32))")]
-pub enum Bed {
-    /// 聚合图床
-    #[sea_orm(string_value = "superbad")]
-    SuperBed,
 }
 
 #[derive(EnumIter, DeriveActiveEnum, Clone, Debug, PartialEq, Eq)]
@@ -74,27 +60,30 @@ impl TryFrom<&str> for Status {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::meme_urls::Entity")]
+    MemeUrls,
+}
+
+impl Related<super::meme_urls::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::MemeUrls.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {
     fn new() -> Self {
         let now = Utc::now().into();
         Self {
             id: Set(Uuid::now_v7()),
-            url: Set(String::new()),
-            cover: Set(String::new()),
-            source: Set(String::new()),
-            format: Set(String::new()),
-            hash: Set(String::new()),
             nickname: Set(String::new()),
             email: Set(String::new()),
+            message: Set(String::new()),
             id_addr: Set(String::new()),
             likes: Set(0),
             unlikes: Set(0),
             categories: Set(format!(";{};", crate::DEFAULT_CATEGORY)),
             status: Set(Status::Uncensored),
-            bed: Set(Bed::SuperBed),
-            bed_id: Set(String::new()),
             show_date_time: Set(now),
             created_date_time: Set(now),
             last_actiity_date_time: Set(now),

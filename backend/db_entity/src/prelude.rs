@@ -2,4 +2,5 @@
 
 pub use super::accounts;
 pub use super::memes;
+pub use super::meme_urls;
 pub use super::categories;

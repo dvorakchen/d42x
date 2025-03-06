@@ -2,6 +2,8 @@ use sea_orm::prelude::Uuid;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
+use crate::config::AllowMemeFormats;
+
 #[derive(Serialize, Deserialize, Debug, Validate)]
 pub(crate) struct LogInReq {
     #[validate(length(min = 1, code = "username_empty"))]
@@ -27,6 +29,9 @@ pub struct ChangePwdReq {
 
 #[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct PostMemesReq {
+    /// category_1;category_2
+    pub categories: String,
+    pub message: String,
     #[validate(length(min = 1))]
     pub memes: Vec<Meme>,
 }
@@ -35,6 +40,8 @@ pub struct PostMemesReq {
 pub struct Meme {
     #[validate(length(min = 1))]
     pub url: String,
+    pub cover: String,
+    pub format: AllowMemeFormats,
     pub hash: String,
     pub bed_id: String,
 }
@@ -42,11 +49,18 @@ pub struct Meme {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MemeItemRes {
     pub id: Uuid,
-    pub url: String,
-    pub format: String,
     pub status: String,
     pub show_at: String,
     pub created_at: String,
+    pub list: Vec<MemeUrlsItem>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MemeUrlsItem {
+    pub id: Uuid,
+    pub url: String,
+    pub cover: String,
+    pub format: AllowMemeFormats,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
