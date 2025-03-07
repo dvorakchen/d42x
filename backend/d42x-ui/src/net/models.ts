@@ -18,11 +18,11 @@ export type MemeEntityModel = {
   categories: string[];
   nickname: string;
   show_date_time: string;
-  list: MemeUrlEntityModel[]
+  list: MemeUrlEntityModel[];
 };
 
 export type MemeUrlEntityModel = {
-  id: String;
+  id: string;
   cover: string;
   url: string;
   format: AllowMemeFormats;

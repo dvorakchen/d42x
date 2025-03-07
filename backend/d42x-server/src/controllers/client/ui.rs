@@ -10,7 +10,7 @@ use crate::db::DbHelper;
 
 use super::models::{CategoryItem, MemeUrl, PaginatedMemeList};
 
-const SIZE_PER_PAGE: u64 = 20;
+const SIZE_PER_PAGE: u64 = 10;
 
 #[derive(Deserialize)]
 pub struct Pagination {

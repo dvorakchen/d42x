@@ -20,6 +20,7 @@ onMounted(() => {
 function handleZoom(ev: MouseEvent) {
   const img = ev.target as HTMLImageElement;
   img.classList.toggle("w-48");
+  img.classList.toggle("max-h-64");
   img.classList.toggle("cursor-zoom-in");
   img.classList.toggle("cursor-zoom-out");
 }
@@ -27,7 +28,7 @@ function handleZoom(ev: MouseEvent) {
 
 <template>
   <img
-    class="w-48 object-contain rounded-lg cursor-zoom-in"
+    class="w-48 max-h-64 object-contain rounded-lg cursor-zoom-in"
     :src="showUrl"
     alt="image"
     @click="handleZoom"
