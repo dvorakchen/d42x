@@ -4,7 +4,6 @@ use crate::config;
 use chrono::Utc;
 use jwt::{Claims, RegisteredClaims, SignWithKey};
 use sea_orm::prelude::Uuid;
-use tracing::debug;
 
 pub const CLAIM_UID: &str = "UID";
 pub const CLAIM_USERNAME: &str = "USERNAME";
@@ -54,7 +53,7 @@ pub fn validate_claims(claims: &Claims) -> bool {
             expiration: Some(exp),
             not_before: Some(nbe),
             issued_at: Some(issat),
-            json_web_token_id: Some(id),
+            json_web_token_id: Some(_),
         } if *iss == *config::ISS
             && *sub == SUBJECT
             && *aud == *config::AUD
@@ -62,7 +61,6 @@ pub fn validate_claims(claims: &Claims) -> bool {
             && *nbe < now_timestamp
             && *issat < now_timestamp =>
         {
-            debug!("validate claims; {}", id);
             true
         }
         _ => false,

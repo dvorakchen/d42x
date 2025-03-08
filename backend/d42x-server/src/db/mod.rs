@@ -1,5 +1,8 @@
+pub mod shared_db_helper;
+
 use std::sync::Arc;
 
+use migration::async_trait;
 use sea_orm::{Database, DatabaseConnection, DbErr};
 use tokio::sync::Mutex;
 use tracing::trace;
@@ -22,4 +25,9 @@ impl DbHelper {
     pub async fn get_connection() -> Result<DatabaseConnection, DbErr> {
         crate::db::get_connection().await
     }
+}
+
+#[async_trait::async_trait]
+pub trait DbConnHelper {
+    async fn get_connection(&self) -> Result<DatabaseConnection, DbErr>;
 }

@@ -1,5 +1,10 @@
 use clap::Parser;
-use d42x_server::{app::AppBuilder, config};
+use d42x_server::{
+    app::shared_data::CategoryRepoSS,
+    business::{cache::MokaCache, category::gen_cate_repo::GenCategoryRepo},
+    config,
+    db::shared_db_helper::SharedDbHelper,
+};
 use migration::{Migrator, MigratorTrait};
 use sea_orm::DbErr;
 use tracing::{debug, info};
@@ -31,7 +36,8 @@ async fn main() {
     }
 
     info!("run app");
-    run_app().await;
+    build_run().await;
+    // run_app().await;
 }
 
 fn set_env() {
@@ -47,13 +53,21 @@ fn set_log() {
         .init();
 }
 
-async fn run_app() {
-    let mut builder = AppBuilder::new();
-    builder
-        .set_address(config::ADDRESS.to_string())
-        .set_cors(config::CORS.to_string());
+async fn build_run() {
+    let db = SharedDbHelper::new(config::DATABASE_URL.to_string());
+    let cate_repo = GenCategoryRepo::with_cache(db, Some(MokaCache));
+    let cate_repo = CategoryRepoSS::new_ext(Box::new(cate_repo));
 
-    builder.build().run().await;
+    d42x_server::app::AppBuilder::new()
+        .address(config::ADDRESS.to_string())
+        .cors(config::CORS.to_string())
+        .category_repo(cate_repo)
+        .aes_key(config::KEY.to_string())
+        .aes_iv(config::IV.clone())
+        .build()
+        .await
+        .run()
+        .await;
 }
 
 async fn fresh_db() -> Result<(), DbErr> {

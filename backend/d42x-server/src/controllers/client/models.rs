@@ -4,12 +4,6 @@ use serde::Serialize;
 
 use crate::config::AllowMemeFormats;
 
-#[derive(Serialize, Debug)]
-pub struct CategoryItem {
-    pub id: Uuid,
-    pub name: String,
-}
-
 #[derive(Serialize)]
 pub struct PaginatedMemeList {
     pub page: u64,

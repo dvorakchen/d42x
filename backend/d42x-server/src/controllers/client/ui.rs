@@ -1,14 +1,15 @@
-use axum::{Json, extract::Query};
-use chrono::{DateTime, FixedOffset, Utc};
-use db_entity::{categories, memes};
-use sea_orm::{
-    ColumnTrait, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QueryOrder, prelude::Uuid,
+use axum::{
+    Json,
+    extract::{Query, State},
 };
+use chrono::{DateTime, FixedOffset, Utc};
+use db_entity::memes;
+use sea_orm::{ColumnTrait, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QueryOrder};
 use serde::Deserialize;
 
-use crate::db::DbHelper;
+use crate::{app::shared_data::CategoryRepoSSType, business::category::CategoryItem, db::DbHelper};
 
-use super::models::{CategoryItem, MemeUrl, PaginatedMemeList};
+use super::models::{MemeUrl, PaginatedMemeList};
 
 const SIZE_PER_PAGE: u64 = 10;
 
@@ -104,21 +105,9 @@ async fn get_meme_list_pagination(page: u64, category: Option<String>) -> Pagina
 }
 
 /// get all top categories
-pub async fn get_categories() -> Json<Vec<CategoryItem>> {
-    let db = DbHelper::get_connection().await.unwrap();
-
-    let category_list: Vec<_> = categories::Entity::find()
-        .filter(categories::Column::Parent.eq(Uuid::nil()))
-        .order_by_asc(categories::Column::Name)
-        .all(&db)
-        .await
-        .unwrap()
-        .into_iter()
-        .map(|category| CategoryItem {
-            id: category.id,
-            name: category.name,
-        })
-        .collect();
-
-    Json(category_list)
+pub async fn get_categories(
+    State(category_repo): State<CategoryRepoSSType>,
+) -> Json<Vec<CategoryItem>> {
+    let list = category_repo.repo.get_categories().await;
+    Json(list)
 }

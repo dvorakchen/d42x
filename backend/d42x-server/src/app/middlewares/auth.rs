@@ -1,4 +1,7 @@
-use crate::{authentication::{validate_claims, AdminUser, CLAIM_UID, CLAIM_USERNAME}, config};
+use crate::{
+    authentication::{AdminUser, CLAIM_UID, CLAIM_USERNAME, validate_claims},
+    config,
+};
 use axum::{
     extract::Request,
     http::{Method, StatusCode, header::AUTHORIZATION},
@@ -7,7 +10,6 @@ use axum::{
 };
 use jwt::VerifyWithKey;
 use sea_orm::prelude::Uuid;
-use tracing::debug;
 
 static WHITE_LIST: &[&str] = &["/api/admin/login"];
 static WHITE_METHODS: &[Method] = &[Method::OPTIONS, Method::HEAD];
@@ -28,7 +30,6 @@ pub async fn jwt_auth_middleware(mut request: Request, next: Next) -> Response {
     // athentication, bearer
     if let Some(bearer) = request.headers().get(AUTHORIZATION) {
         if let Some(token) = bearer.to_str().unwrap().strip_prefix(BEARER_PREFIX) {
-            debug!("token: {}", token);
             if let Ok(claims) = token.verify_with_key(&*config::JWT_KEY) {
                 if validate_claims(&claims) {
                     match (
