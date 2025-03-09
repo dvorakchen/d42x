@@ -28,4 +28,5 @@ pub struct MemeUrl {
     pub url: String,
     pub cover: String,
     pub format: AllowMemeFormats,
+    pub sort: i32,
 }

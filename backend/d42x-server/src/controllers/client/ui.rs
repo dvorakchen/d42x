@@ -91,6 +91,7 @@ async fn get_meme_list_pagination(page: u64, category: Option<String>) -> Pagina
                     url: e.url,
                     cover: e.cover,
                     format: e.format.as_str().try_into().unwrap(),
+                    sort: e.sort,
                 })
                 .collect(),
         });

@@ -46,6 +46,7 @@ impl MigrationTrait for Migration {
                     .col(string(MemeUrls::Hash))
                     .col(string(MemeUrls::Bed))
                     .col(string(MemeUrls::BedId))
+                    .col(integer(MemeUrls::Sort))
                     .col(timestamp_with_time_zone(MemeUrls::CreatedDateTime))
                     .to_owned(),
             )
@@ -181,6 +182,8 @@ enum MemeUrls {
     Bed,
     #[sea_orm(iden = "bed_id")]
     BedId,
+    #[sea_orm(iden = "sort")]
+    Sort,
     #[sea_orm(iden = "created_date_time")]
     CreatedDateTime,
 }

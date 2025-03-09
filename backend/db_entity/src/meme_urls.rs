@@ -14,6 +14,7 @@ pub struct Model {
     pub hash: String,
     pub bed: Bed,
     pub bed_id: String,
+    pub sort: i32,
     pub created_date_time: chrono::DateTime<FixedOffset>,
 }
 
@@ -54,6 +55,7 @@ impl ActiveModelBehavior for ActiveModel {
             hash: Set(String::new()),
             bed: Set(Bed::SuperBed),
             bed_id: Set(String::new()),
+            sort: Set(0),
             created_date_time: Set(now),
         }
     }

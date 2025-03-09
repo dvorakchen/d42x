@@ -26,4 +26,5 @@ export type MemeUrlEntityModel = {
   cover: string;
   url: string;
   format: AllowMemeFormats;
+  sort: number;
 };
