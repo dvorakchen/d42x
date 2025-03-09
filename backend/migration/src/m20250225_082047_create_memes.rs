@@ -70,6 +70,7 @@ impl MigrationTrait for Migration {
             cover: Set(String::new()),
             source: Set(String::new()),
             format: Set(String::from("JPG")),
+            sort: Set(0),
             ..meme_urls::ActiveModel::new()
         }
         .insert(db)
@@ -83,6 +84,7 @@ impl MigrationTrait for Migration {
             cover: Set(String::new()),
             source: Set(String::new()),
             format: Set(String::from("JPG")),
+            sort: Set(1),
             ..meme_urls::ActiveModel::new()
         }
         .insert(db)
@@ -104,6 +106,7 @@ impl MigrationTrait for Migration {
             cover: Set(String::new()),
             source: Set(String::new()),
             format: Set(String::from("PNG")),
+            sort: Set(0),
             ..meme_urls::ActiveModel::new()
         }
         .insert(db)
@@ -117,6 +120,7 @@ impl MigrationTrait for Migration {
             cover: Set(String::new()),
             source: Set(String::new()),
             format: Set(String::from("WEBP")),
+            sort: Set(1),
             ..meme_urls::ActiveModel::new()
         }
         .insert(db)
