@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
 use axum::{
     Extension, Json,
-    extract::Query,
+    extract::{Query, State},
     http::StatusCode,
     response::{self, Response},
 };
@@ -11,12 +9,12 @@ use db_entity::{
     meme_urls,
     memes::{self},
 };
-use sea_orm::{
-    ActiveModelBehavior, ActiveModelTrait, ColumnTrait, ConnectionTrait, DbErr, EntityTrait,
-    ModelTrait, PaginatorTrait, QueryFilter, QueryOrder, Set, TransactionTrait,
-};
+use sea_orm::{ColumnTrait, EntityTrait, ModelTrait, PaginatorTrait, QueryFilter, QueryOrder};
+use std::collections::HashMap;
+use tracing::error;
 
 use crate::{
+    app::shared_data::MemeRepoSSType,
     authentication::AdminUser,
     controllers::admin::models::{MemeItemRes, MemeUrlsItem, Pagination},
     db::DbHelper,
@@ -27,72 +25,22 @@ use super::models::PostMemesReq;
 
 pub async fn post_memes(
     Extension(admin_user): Extension<AdminUser>,
+    State(meme_repo): State<MemeRepoSSType>,
     Json(post_memes): Json<Vec<PostMemesReq>>,
 ) -> Response {
     need_administrator!(admin_user.id);
 
-    if post_memes.len() == 0 {
-        return (StatusCode::BAD_REQUEST, "Not Post").into_response();
-    }
-
-    let db = DbHelper::get_connection()
-        .await
-        .expect("post_memes get DatabaseConnection failed");
-
-    let txn = db.begin().await.unwrap();
-
-    let mut result = vec![];
-
-    for item in post_memes {
-        result.push(post_meme(item, admin_user.username.clone(), &db).await);
-    }
-
-    if result.iter().any(|e| e.is_err()) {
-        (StatusCode::INTERNAL_SERVER_ERROR).into_response()
-    } else {
-        txn.commit().await.unwrap();
-        StatusCode::OK.into_response()
-    }
-}
-
-async fn post_meme<'a, C: ConnectionTrait>(
-    data: PostMemesReq,
-    username: String,
-    db: &'a C,
-) -> Result<(), DbErr> {
-    // insert memes and meme_urls
-    let model = memes::ActiveModel {
-        status: Set(memes::Status::Published),
-        nickname: Set(username),
-        message: Set(data.message.clone()),
-        categories: Set(if data.categories.is_empty() {
-            format!(";{};", db_entity::DEFAULT_CATEGORY)
-        } else {
-            format!(";{};", data.categories)
-        }),
-        ..memes::ActiveModel::new()
-    }
-    .insert(db)
-    .await
-    .unwrap();
-
-    let memes: Vec<_> = data
-        .memes
-        .iter()
-        .map(|item| meme_urls::ActiveModel {
-            meme_id: Set(model.id),
-            url: Set(item.url.clone()),
-            cover: Set(item.cover.clone()),
-            format: Set(item.format.to_string()),
-            hash: Set(item.hash.clone()),
-            bed_id: Set(item.bed_id.clone()),
-            ..meme_urls::ActiveModel::new()
-        })
+    let new_memes = post_memes
+        .into_iter()
+        .map(crate::business::meme::PostMeme::from)
         .collect();
 
-    meme_urls::Entity::insert_many(memes).exec(db).await?;
-
-    Ok(())
+    if let Err(e) = meme_repo.repo.post_memes(new_memes).await {
+        error!("post memes error: {:?}", e);
+        (StatusCode::INTERNAL_SERVER_ERROR).into_response()
+    } else {
+        StatusCode::OK.into_response()
+    }
 }
 
 pub async fn list_memes(

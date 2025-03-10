@@ -1,7 +1,10 @@
 use clap::Parser;
 use d42x_server::{
-    app::shared_data::CategoryRepoSS,
-    business::{cache::MokaCache, category::gen_cate_repo::GenCategoryRepo},
+    app::shared_data::{CategoryRepoSS, MemeRepoSS},
+    business::{
+        cache::MokaCache, category::gen_cate_repo::GenCategoryRepo,
+        meme::gen_meme_repo::GenMemeRepo,
+    },
     config,
     db::shared_db_helper::SharedDbHelper,
 };
@@ -54,20 +57,32 @@ fn set_log() {
 }
 
 async fn build_run() {
-    let db = SharedDbHelper::new(config::DATABASE_URL.to_string());
-    let cate_repo = GenCategoryRepo::with_cache(db, Some(MokaCache));
-    let cate_repo = CategoryRepoSS::new_ext(Box::new(cate_repo));
+    let cate_repo = category_repo_shared_state();
+    let meme_repo = meme_repo_shared_state();
 
     d42x_server::app::AppBuilder::new()
         .address(config::ADDRESS.to_string())
         .cors(config::CORS.to_string())
         .category_repo(cate_repo)
+        .meme_repo(meme_repo)
         .aes_key(config::KEY.to_string())
         .aes_iv(config::IV.clone())
         .build()
         .await
         .run()
         .await;
+}
+
+fn category_repo_shared_state() -> CategoryRepoSS {
+    let db = SharedDbHelper::new(config::DATABASE_URL.to_string());
+    let cate_repo = GenCategoryRepo::with_cache(db, Some(MokaCache::new()));
+    CategoryRepoSS::new(cate_repo)
+}
+
+fn meme_repo_shared_state() -> MemeRepoSS {
+    let db = SharedDbHelper::new(config::DATABASE_URL.to_string());
+    let meme_repo = GenMemeRepo::with_cache(db, Some(MokaCache::new()));
+    MemeRepoSS::new(meme_repo)
 }
 
 async fn fresh_db() -> Result<(), DbErr> {

@@ -30,5 +30,6 @@ jwt = "0.16.0"
 hmac = "0.12.1"
 sha2 = "0.10.8"
 tower = "0.5.2"
+moka = { version = "0.12.10", features = ["sync"] }
 
 [dev-dependencies]

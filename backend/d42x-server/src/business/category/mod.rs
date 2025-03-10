@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 
 #[async_trait::async_trait]
 pub trait CategoryRepository {
-    async fn get_categories(&self) -> Vec<CategoryItem>;
+    async fn get_categories(&self) -> Vec<CategoryItem> {
+        unimplemented!()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -18,8 +20,4 @@ pub struct CategoryItem {
 pub struct PanicCategoryRepo;
 
 #[async_trait::async_trait]
-impl CategoryRepository for PanicCategoryRepo {
-    async fn get_categories(&self) -> Vec<CategoryItem> {
-        panic!("This is PanicCategoryRepository")
-    }
-}
+impl CategoryRepository for PanicCategoryRepo {}

@@ -46,6 +46,27 @@ pub struct Meme {
     pub bed_id: String,
 }
 
+impl From<PostMemesReq> for crate::business::meme::PostMeme {
+    fn from(value: PostMemesReq) -> Self {
+        Self {
+            username: String::new(),
+            categories: value.categories.split(";").map(String::from).collect(),
+            message: value.message,
+            memes: value
+                .memes
+                .into_iter()
+                .map(|p| crate::business::meme::PostMemeUrl {
+                    url: p.url,
+                    cover: p.cover,
+                    format: p.format,
+                    hash: p.hash,
+                    bed_id: p.bed_id,
+                })
+                .collect(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MemeItemRes {
     pub id: Uuid,

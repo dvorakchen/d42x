@@ -3,7 +3,7 @@ pub mod shared_data;
 
 use crate::controllers::{
     admin::{change_password, list_memes, log_in, post_memes},
-    client::ui::{get_categories, get_meme_list},
+    client::ui::{get_categories, get_paginated_memes},
 };
 use axum::{
     Router,
@@ -12,7 +12,7 @@ use axum::{
     routing::{get, post, put},
 };
 use middlewares::{CipherLayer, jwt_auth_middleware};
-use shared_data::CategoryRepoSS;
+use shared_data::{CategoryRepoSS, CategoryRepoSSType, IntoRepoSSType, MemeRepoSS, MemeRepoSSType};
 use soft_aes::aes::AES_BLOCK_SIZE;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
@@ -32,7 +32,8 @@ impl App {
 pub struct AppBuilder {
     address: String,
     cors: String,
-    category_repo: Option<CategoryRepoSS>,
+    category_repo: Option<CategoryRepoSSType>,
+    meme_repo: Option<MemeRepoSSType>,
     aes_key: String,
     aes_iv: [u8; AES_BLOCK_SIZE],
 }
@@ -43,6 +44,7 @@ impl AppBuilder {
             address: String::new(),
             cors: String::new(),
             category_repo: None,
+            meme_repo: None,
             aes_key: String::new(),
             aes_iv: [0; 16],
         }
@@ -58,8 +60,13 @@ impl AppBuilder {
         self
     }
 
-    pub fn category_repo(mut self, repo: CategoryRepoSS) -> Self {
-        self.category_repo = Some(repo);
+    pub fn category_repo(mut self, repo: impl IntoRepoSSType<CategoryRepoSSType>) -> Self {
+        self.category_repo = Some(repo.into_shared());
+        self
+    }
+
+    pub fn meme_repo(mut self, repo: impl IntoRepoSSType<MemeRepoSSType>) -> Self {
+        self.meme_repo = Some(repo.into_shared());
         self
     }
 
@@ -76,6 +83,18 @@ impl AppBuilder {
     pub async fn build(mut self) -> App {
         let listener = self.get_bind_listener().await;
 
+        let cate_repo = if let Some(cate_repo) = self.category_repo.take() {
+            cate_repo
+        } else {
+            CategoryRepoSS::non().into_shared()
+        };
+
+        let meme_repo = if let Some(meme_repo) = self.meme_repo.take() {
+            meme_repo
+        } else {
+            MemeRepoSS::non().into_shared()
+        };
+
         let api_routes = Router::new()
             .nest(
                 "/admin",
@@ -83,13 +102,16 @@ impl AppBuilder {
                     .route("/login", post(log_in))
                     .route("/change-password", put(change_password))
                     .route("/post-memes", post(post_memes))
+                    .with_state(meme_repo.clone())
                     .route("/memes", get(list_memes)),
             )
             .nest(
                 "/client",
                 Router::new()
                     .route("/categories", get(get_categories))
-                    .route("/memes", get(get_meme_list)),
+                    .with_state(cate_repo)
+                    .route("/memes", get(get_paginated_memes))
+                    .with_state(meme_repo),
             );
 
         let router = Router::new()
@@ -107,12 +129,6 @@ impl AppBuilder {
                 "/favicon.ico",
                 tower_http::services::ServeDir::new("wwwroot/favicon.ico"),
             );
-
-        let router: Router<()> = if let Some(cate_repo) = self.category_repo.take() {
-            router.with_state(cate_repo.into())
-        } else {
-            router.with_state(CategoryRepoSS::non().into())
-        };
 
         let cors_layer = self.build_cors();
 

@@ -3,15 +3,19 @@ use db_entity::categories;
 use migration::async_trait;
 use sea_orm::prelude::Uuid;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder};
+use serde_json::json;
+use tracing::debug;
 
 use super::{CategoryItem, CategoryRepository};
 
-const TOP_CATEGORIES_CACHE_KEY: &str = "TOP_CATEGORIES_CACHE_KEY";
+lazy_static::lazy_static! {
+    static ref TOP_CATEGORIES_CACHE_KEY: String = String::from("TOP_CATEGORIES_CACHE_KEY");
+}
 
 pub struct GenCategoryRepo<TCache, TDb>
 where
-    TCache: Cache<&'static str, String> + Sync + Send,
-    TDb: DbConnHelper + Sync + Send,
+    TCache: Cache<String, String>,
+    TDb: DbConnHelper,
 {
     cache: Option<TCache>,
     db: TDb,
@@ -19,8 +23,8 @@ where
 
 impl<TCache, TDb> GenCategoryRepo<TCache, TDb>
 where
-    TCache: Cache<&'static str, String> + Sync + Send,
-    TDb: DbConnHelper + Sync + Send,
+    TCache: Cache<String, String>,
+    TDb: DbConnHelper,
 {
     pub fn new(db: TDb) -> Self {
         Self { cache: None, db }
@@ -34,19 +38,25 @@ where
 #[async_trait::async_trait]
 impl<TCache, TDb> CategoryRepository for GenCategoryRepo<TCache, TDb>
 where
-    TCache: Cache<&'static str, String> + Sync + Send,
+    TCache: Cache<String, String> + Sync + Send,
     TDb: DbConnHelper + Sync + Send,
 {
     async fn get_categories(&self) -> Vec<super::CategoryItem> {
+        debug!("get categories");
+
         if let Some(cache) = &self.cache {
             if let Some(value) = cache.get(&TOP_CATEGORIES_CACHE_KEY) {
                 if let Ok(value) = serde_json::from_str::<Vec<CategoryItem>>(value.as_str()) {
+                    debug!("get in cache: {:?}", value);
                     return value;
                 } else {
+                    debug!("incorrect data in cache, remove");
                     cache.remove(&TOP_CATEGORIES_CACHE_KEY);
                 }
             }
         }
+
+        debug!("has not cache data");
 
         let db = self.db.get_connection().await.unwrap();
 
@@ -62,6 +72,13 @@ where
                 name: category.name,
             })
             .collect();
+
+        if let Some(cache) = &self.cache {
+            let cache_value = json!(category_list).to_string();
+            debug!("set cache data: {:?}", cache_value);
+
+            cache.insert(TOP_CATEGORIES_CACHE_KEY.clone(), cache_value);
+        }
 
         category_list
     }
