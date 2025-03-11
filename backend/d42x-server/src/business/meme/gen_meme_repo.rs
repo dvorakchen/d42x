@@ -12,7 +12,7 @@ use sea_orm::{
 use serde_json::json;
 use tracing::debug;
 
-use super::{Meme, MemeError, MemeRepository, PostMeme};
+use super::{GetFilter, Meme, MemeError, MemeRepository, PostMeme};
 
 const PAGINATED_MEMES_CACHE_KEY: &str = "PAGINATED_MEMES_CACHE_KEY";
 const DEFAULT_PAGE_SIZE: u64 = 10;
@@ -69,7 +69,7 @@ where
             }
         }
 
-        let fetch_page = if page > 0 { page - 1 } else { page };
+        let fetch_page = if page > 0 { page - 1 } else { 0 };
 
         let db = self.db.get_connection().await.unwrap();
 
@@ -93,42 +93,8 @@ where
 
         let list: Vec<_> = paged_memes.fetch_page(fetch_page).await.unwrap();
 
-        let mut paginated_meme_list = vec![];
+        let paginated_meme_list = models_2_meme_list(list, &db).await;
 
-        for item in list {
-            paginated_meme_list.push(Meme {
-                id: item.id,
-                likes: item.likes as usize,
-                unlikes: item.unlikes as usize,
-                categories: item
-                    .categories
-                    .split(';')
-                    .filter_map(|c| {
-                        if c.is_empty() {
-                            None
-                        } else {
-                            Some(c.to_string())
-                        }
-                    })
-                    .collect(),
-                nickname: item.nickname.clone(),
-                show_date_time: item.show_date_time,
-                list: item
-                    .find_related(db_entity::meme_urls::Entity)
-                    .all(&db)
-                    .await
-                    .unwrap()
-                    .into_iter()
-                    .map(|e| MemeUrl {
-                        id: e.id,
-                        url: e.url,
-                        cover: e.cover,
-                        format: e.format.as_str().try_into().unwrap(),
-                        sort: e.sort,
-                    })
-                    .collect(),
-            });
-        }
         let total = paged_memes.num_pages().await.unwrap();
 
         let result = Pagination {
@@ -144,6 +110,34 @@ where
 
             cache.insert(key, cache_value);
         }
+
+        result
+    }
+
+    async fn get_paginated_all_memes(&self, filter: GetFilter) -> Pagination<Meme> {
+        let db = self.db.get_connection().await.unwrap();
+
+        let mut paged_memes = db_entity::memes::Entity::find();
+        if let Some(status) = filter.status {
+            paged_memes = paged_memes.filter(memes::Column::Status.eq(status));
+        }
+
+        let paged_memes = paged_memes
+            .order_by_desc(memes::Column::ShowDateTime)
+            .paginate(&db, filter.size);
+
+        let list = paged_memes.fetch_page(filter.page - 1).await.unwrap();
+
+        let meme_list = models_2_meme_list(list, &db).await;
+
+        let total = paged_memes.num_pages().await.unwrap();
+
+        let result = Pagination {
+            page: filter.page,
+            total,
+            size: filter.size,
+            list: meme_list,
+        };
 
         result
     }
@@ -230,4 +224,48 @@ fn get_paginated_meme_cache_key(page: u64, category: &Option<String>) -> String 
     };
 
     format!("{}-{}-{}", PAGINATED_MEMES_CACHE_KEY, page, category)
+}
+
+async fn models_2_meme_list(
+    models: Vec<db_entity::memes::Model>,
+    db: &impl ConnectionTrait,
+) -> Vec<Meme> {
+    let mut meme_list = vec![];
+
+    for item in models {
+        meme_list.push(Meme {
+            id: item.id,
+            likes: item.likes as usize,
+            unlikes: item.unlikes as usize,
+            categories: item
+                .categories
+                .split(';')
+                .filter_map(|c| {
+                    if c.is_empty() {
+                        None
+                    } else {
+                        Some(c.to_string())
+                    }
+                })
+                .collect(),
+            nickname: item.nickname.clone(),
+            show_date_time: item.show_date_time,
+            list: item
+                .find_related(db_entity::meme_urls::Entity)
+                .all(db)
+                .await
+                .unwrap()
+                .into_iter()
+                .map(|e| MemeUrl {
+                    id: e.id,
+                    url: e.url,
+                    cover: e.cover,
+                    format: e.format.as_str().try_into().unwrap(),
+                    sort: e.sort,
+                })
+                .collect(),
+        });
+    }
+
+    meme_list
 }

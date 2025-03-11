@@ -102,7 +102,6 @@ impl AppBuilder {
                     .route("/login", post(log_in))
                     .route("/change-password", put(change_password))
                     .route("/post-memes", post(post_memes))
-                    .with_state(meme_repo.clone())
                     .route("/memes", get(list_memes)),
             )
             .nest(
@@ -110,9 +109,9 @@ impl AppBuilder {
                 Router::new()
                     .route("/categories", get(get_categories))
                     .with_state(cate_repo)
-                    .route("/memes", get(get_paginated_memes))
-                    .with_state(meme_repo),
-            );
+                    .route("/memes", get(get_paginated_memes)), // .with_state(meme_repo),
+            )
+            .with_state(meme_repo);
 
         let router = Router::new()
             // .route("/", get(home))

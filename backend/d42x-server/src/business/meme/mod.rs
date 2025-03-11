@@ -17,6 +17,10 @@ pub trait MemeRepository {
         unimplemented!()
     }
 
+    async fn get_paginated_all_memes(&self, _filter: GetFilter) -> Pagination<Meme> {
+        unimplemented!()
+    }
+
     async fn post_memes(&self, _memes: Vec<PostMeme>) -> Result<(), MemeError> {
         unimplemented!()
     }
@@ -25,6 +29,13 @@ pub trait MemeRepository {
 pub struct PanicMemeRepository;
 
 impl MemeRepository for PanicMemeRepository {}
+
+#[derive(Serialize)]
+pub struct GetFilter {
+    pub page: u64,
+    pub size: u64,
+    pub status: Option<db_entity::memes::Status>,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Meme {
