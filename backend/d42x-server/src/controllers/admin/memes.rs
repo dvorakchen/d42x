@@ -38,6 +38,7 @@ pub async fn post_memes(
 
 #[derive(Deserialize)]
 pub struct QueryParams {
+    /// page number, base 1
     pub page: u64,
     pub size: u64,
     pub status: Option<String>,
@@ -50,8 +51,13 @@ pub async fn list_memes(
 ) -> Response {
     need_administrator!(admin_user.id);
 
-    let page = if params.page > 0 { params.page - 1 } else { 0 };
-    let status = params.status;
+    let page = if params.page > 0 { params.page } else { 0 };
+    let mut status = params.status;
+    if let Some(s) = &status {
+        if db_entity::memes::Status::try_from(s.as_str()).is_err() {
+            status = None;
+        }
+    }
 
     let list: crate::business::Pagination<Meme> = meme_repo
         .repo

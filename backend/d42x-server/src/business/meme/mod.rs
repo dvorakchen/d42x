@@ -32,6 +32,7 @@ impl MemeRepository for PanicMemeRepository {}
 
 #[derive(Serialize)]
 pub struct GetFilter {
+    /// page number, base 1
     pub page: u64,
     pub size: u64,
     pub status: Option<db_entity::memes::Status>,
@@ -45,6 +46,8 @@ pub struct Meme {
     pub categories: Vec<String>,
     pub nickname: String,
     pub show_date_time: DateTime<FixedOffset>,
+    pub create_date_time: DateTime<FixedOffset>,
+    pub status: db_entity::memes::Status,
     pub list: Vec<MemeUrl>,
 }
 

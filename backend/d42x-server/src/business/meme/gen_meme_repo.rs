@@ -250,6 +250,8 @@ async fn models_2_meme_list(
                 .collect(),
             nickname: item.nickname.clone(),
             show_date_time: item.show_date_time,
+            create_date_time: item.created_date_time,
+            status: item.status,
             list: item
                 .find_related(db_entity::meme_urls::Entity)
                 .all(db)

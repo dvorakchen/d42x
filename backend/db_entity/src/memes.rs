@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use chrono::{FixedOffset, Utc};
 use sea_orm::{Set, entity::prelude::*};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "memes")]
@@ -23,7 +23,7 @@ pub struct Model {
     pub last_actiity_date_time: chrono::DateTime<FixedOffset>,
 }
 
-#[derive(EnumIter, DeriveActiveEnum, Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(EnumIter, DeriveActiveEnum, Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::N(32))")]
 pub enum Status {
     #[sea_orm(string_value = "uncensored")]
