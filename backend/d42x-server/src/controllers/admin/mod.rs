@@ -27,6 +27,10 @@ macro_rules! need_administrator {
     };
 }
 
+pub async fn check_logged_in() -> Response {
+    StatusCode::OK.into_response()
+}
+
 pub(crate) async fn log_in(header: HeaderMap, Json(log_in_req): Json<LogInReq>) -> Response {
     if let Err(e) = log_in_req.validate() {
         return (StatusCode::BAD_REQUEST, Json(e)).into_response();
@@ -74,6 +78,8 @@ pub async fn change_password(
     Extension(admin_user): Extension<AdminUser>,
     Json(change_pwd_req): Json<ChangePwdReq>,
 ) -> impl IntoResponse {
+    need_administrator!(admin_user.id);
+
     if let Err(e) = change_pwd_req.validate() {
         return (StatusCode::BAD_REQUEST, Json(e)).into_response();
     }

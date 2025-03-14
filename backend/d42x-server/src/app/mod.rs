@@ -2,7 +2,7 @@ pub mod middlewares;
 pub mod shared_data;
 
 use crate::controllers::{
-    admin::{change_password, list_memes, log_in, post_memes},
+    admin::{change_password, check_logged_in, list_memes, log_in, post_memes},
     client::ui::{get_categories, get_paginated_memes},
 };
 use axum::{
@@ -99,6 +99,7 @@ impl AppBuilder {
             .nest(
                 "/admin",
                 Router::new()
+                    .route("/check-logged-in", get(check_logged_in))
                     .route("/login", post(log_in))
                     .route("/change-password", put(change_password))
                     .route("/post-memes", post(post_memes))
