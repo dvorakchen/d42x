@@ -102,6 +102,8 @@ impl AppBuilder {
                     .route("/check-logged-in", get(check_logged_in))
                     .route("/login", post(log_in))
                     .route("/change-password", put(change_password))
+                    .route("/categories", get(get_categories))
+                    .with_state(cate_repo.clone())
                     .route("/post-memes", post(post_memes))
                     .route("/memes", get(list_memes)),
             )
