@@ -115,5 +115,9 @@ where
             .exec(&db)
             .await
             .expect("categories insert many failed");
+
+        if let Some(cache) = &self.cache {
+            cache.remove(&TOP_CATEGORIES_CACHE_KEY);
+        }
     }
 }
