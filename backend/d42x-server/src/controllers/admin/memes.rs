@@ -8,7 +8,7 @@ use serde::Deserialize;
 use tracing::error;
 
 use crate::{
-    app::shared_data::MemeRepoSSType,
+    app::shared_data::{CategoryRepoSSType, MemeRepoSSType},
     authentication::AdminUser,
     business::meme::{GetFilter, Meme},
     need_administrator,
@@ -18,10 +18,22 @@ use super::models::PostMemesReq;
 
 pub async fn post_memes(
     Extension(admin_user): Extension<AdminUser>,
+    State(category_repo): State<CategoryRepoSSType>,
     State(meme_repo): State<MemeRepoSSType>,
     Json(post_memes): Json<Vec<PostMemesReq>>,
 ) -> Response {
     need_administrator!(admin_user.id);
+
+    let new_catepories: Vec<_> = post_memes
+        .iter()
+        .map(|item| item.categories.clone())
+        .flatten()
+        .collect();
+
+    {
+        let cate = category_repo.read().await;
+        cate.repo.append_categories(new_catepories).await;
+    }
 
     let new_memes = post_memes
         .into_iter()

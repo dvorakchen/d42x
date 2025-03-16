@@ -31,6 +31,10 @@ pub async fn get_paginated_memes(
 pub async fn get_categories(
     State(category_repo): State<CategoryRepoSSType>,
 ) -> Json<Vec<CategoryItem>> {
-    let list = category_repo.repo.get_categories().await;
+    let list = {
+        let cate = category_repo.read().await;
+        cate.repo.get_categories().await
+    };
+
     Json(list)
 }

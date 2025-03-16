@@ -12,7 +12,9 @@ use axum::{
     routing::{get, post, put},
 };
 use middlewares::{CipherLayer, jwt_auth_middleware};
-use shared_data::{CategoryRepoSS, CategoryRepoSSType, IntoRepoSSType, MemeRepoSS, MemeRepoSSType};
+use shared_data::{
+    AppStates, CategoryRepoSS, CategoryRepoSSType, IntoRepoSSType, MemeRepoSS, MemeRepoSSType,
+};
 use soft_aes::aes::AES_BLOCK_SIZE;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
@@ -83,17 +85,7 @@ impl AppBuilder {
     pub async fn build(mut self) -> App {
         let listener = self.get_bind_listener().await;
 
-        let cate_repo = if let Some(cate_repo) = self.category_repo.take() {
-            cate_repo
-        } else {
-            CategoryRepoSS::non().into_shared()
-        };
-
-        let meme_repo = if let Some(meme_repo) = self.meme_repo.take() {
-            meme_repo
-        } else {
-            MemeRepoSS::non().into_shared()
-        };
+        let app_state = self.build_state();
 
         let api_routes = Router::new()
             .nest(
@@ -103,18 +95,24 @@ impl AppBuilder {
                     .route("/login", post(log_in))
                     .route("/change-password", put(change_password))
                     .route("/categories", get(get_categories))
-                    .with_state(cate_repo.clone())
+                    .with_state(app_state.clone())
+                    // .with_state(cate_repo.clone())
                     .route("/post-memes", post(post_memes))
-                    .route("/memes", get(list_memes)),
+                    .with_state(app_state.clone())
+                    .route("/memes", get(list_memes).with_state(app_state.clone())),
             )
             .nest(
                 "/client",
                 Router::new()
                     .route("/categories", get(get_categories))
-                    .with_state(cate_repo)
-                    .route("/memes", get(get_paginated_memes)), // .with_state(meme_repo),
-            )
-            .with_state(meme_repo);
+                    .with_state(app_state.clone())
+                    // .with_state(cate_repo)
+                    .route(
+                        "/memes",
+                        get(get_paginated_memes).with_state(app_state.clone()),
+                    ), // .with_state(meme_repo),
+            );
+        // .with_state(meme_repo);
 
         let router = Router::new()
             // .route("/", get(home))
@@ -147,6 +145,25 @@ impl AppBuilder {
 
         todo!()
         // App { listener, router }
+    }
+
+    fn build_state(&mut self) -> AppStates {
+        let cate_repo = if let Some(cate_repo) = self.category_repo.take() {
+            cate_repo
+        } else {
+            CategoryRepoSS::non().into_shared()
+        };
+
+        let meme_repo = if let Some(meme_repo) = self.meme_repo.take() {
+            meme_repo
+        } else {
+            MemeRepoSS::non().into_shared()
+        };
+
+        AppStates {
+            cate_repo,
+            meme_repo,
+        }
     }
 
     fn build_cors(&self) -> CorsLayer {

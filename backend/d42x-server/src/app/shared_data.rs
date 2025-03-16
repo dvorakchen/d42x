@@ -1,11 +1,32 @@
 use std::sync::Arc;
 
+use axum::extract::FromRef;
+use tokio::sync::RwLock;
+
 use crate::business::{
     category::{CategoryRepository, PanicCategoryRepo},
     meme::{MemeRepository, PanicMemeRepository},
 };
 
-pub type CategoryRepoSSType = Arc<CategoryRepoSS>;
+#[derive(Clone)]
+pub struct AppStates {
+    pub meme_repo: MemeRepoSSType,
+    pub cate_repo: CategoryRepoSSType,
+}
+
+impl FromRef<AppStates> for MemeRepoSSType {
+    fn from_ref(input: &AppStates) -> Self {
+        Arc::clone(&input.meme_repo)
+    }
+}
+
+impl FromRef<AppStates> for CategoryRepoSSType {
+    fn from_ref(input: &AppStates) -> Self {
+        Arc::clone(&input.cate_repo)
+    }
+}
+
+pub type CategoryRepoSSType = Arc<RwLock<CategoryRepoSS>>;
 
 pub trait IntoRepoSSType<T> {
     fn into_shared(self) -> T;
@@ -29,7 +50,7 @@ impl CategoryRepoSS {
 
 impl IntoRepoSSType<CategoryRepoSSType> for CategoryRepoSS {
     fn into_shared(self) -> CategoryRepoSSType {
-        Arc::new(self)
+        Arc::new(RwLock::new(self))
     }
 }
 

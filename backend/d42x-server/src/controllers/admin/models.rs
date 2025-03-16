@@ -29,8 +29,7 @@ pub struct ChangePwdReq {
 
 #[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct PostMemesReq {
-    /// category_1;category_2
-    pub categories: String,
+    pub categories: Vec<String>,
     pub message: String,
     #[validate(length(min = 1))]
     pub memes: Vec<Meme>,
@@ -50,7 +49,7 @@ impl From<PostMemesReq> for crate::business::meme::PostMeme {
     fn from(value: PostMemesReq) -> Self {
         Self {
             username: String::new(),
-            categories: value.categories.split(";").map(String::from).collect(),
+            categories: value.categories,
             message: value.message,
             memes: value
                 .memes

@@ -1,8 +1,10 @@
+use std::collections::HashSet;
+
 use crate::{business::cache::Cache, db::DbConnHelper};
 use db_entity::categories;
 use migration::async_trait;
 use sea_orm::prelude::Uuid;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, QueryOrder};
+use sea_orm::{ActiveModelBehavior, ColumnTrait, EntityTrait, QueryFilter, QueryOrder, Set};
 use serde_json::json;
 use tracing::debug;
 
@@ -81,5 +83,37 @@ where
         }
 
         category_list
+    }
+
+    async fn append_categories(&self, mut list: Vec<String>) {
+        let list: HashSet<_> = list.drain(..).collect();
+
+        let existed_categories = self.get_categories().await;
+        let existed_categories: HashSet<_> =
+            existed_categories.into_iter().map(|t| t.name).collect();
+
+        let list: Vec<_> = list
+            .into_iter()
+            .filter_map(|item| {
+                if existed_categories.contains(&item) {
+                    None
+                } else {
+                    Some(categories::ActiveModel {
+                        name: Set(item),
+                        ..categories::ActiveModel::new()
+                    })
+                }
+            })
+            .collect();
+
+        let db = self
+            .db
+            .get_connection()
+            .await
+            .expect("categories get db failed");
+        categories::Entity::insert_many(list)
+            .exec(&db)
+            .await
+            .expect("categories insert many failed");
     }
 }
