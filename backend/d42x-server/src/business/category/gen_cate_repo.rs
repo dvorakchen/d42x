@@ -106,6 +106,10 @@ where
             })
             .collect();
 
+        if list.len() == 0 {
+            return;
+        }
+
         let db = self
             .db
             .get_connection()
