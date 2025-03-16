@@ -12,7 +12,7 @@ defineProps<{
   <header class="flex flex-col gap-4 mb-2 text-sm">
     <div class="flex gap-2">
       <span
-        class="badge font-semibold text-nowrap odd:badge-primary even:badge-accent last:badge-info"
+        class="badge badge-sm font-semibold text-nowrap odd:badge-primary even:badge-accent last:badge-info"
         v-for="cate in meme.categories"
         :key="cate"
         >{{ cate }}</span
