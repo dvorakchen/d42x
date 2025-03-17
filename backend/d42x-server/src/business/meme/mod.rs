@@ -67,7 +67,6 @@ pub struct MemeUrl {
 #[derive(Serialize, Debug, Validate)]
 pub struct PostMeme {
     pub username: String,
-    /// category_1;category_2
     pub categories: Vec<String>,
     pub message: String,
     #[validate(length(min = 1))]
