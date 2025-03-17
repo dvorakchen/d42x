@@ -7,7 +7,7 @@ use db_entity::{meme_urls, memes};
 use migration::async_trait;
 use sea_orm::{
     ActiveModelBehavior, ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, ModelTrait,
-    PaginatorTrait, QueryFilter, QueryOrder, Set, TransactionTrait,
+    PaginatorTrait, QueryFilter, QueryOrder, Set, TransactionTrait, prelude::Uuid,
 };
 use serde_json::json;
 use tracing::debug;
@@ -151,9 +151,9 @@ where
             return Err(MemeError::HasNotAnyMeme);
         }
 
-        let db = self.db.get_connection().await.map_err(MemeError::from)?;
+        let db = self.db.get_connection().await?;
 
-        let txn = db.begin().await.map_err(MemeError::from)?;
+        let txn = db.begin().await?;
 
         for item in memes {
             if let Err(e) = self.post_meme(item, &db).await {
@@ -161,8 +161,25 @@ where
             }
         }
 
-        txn.commit().await.map_err(MemeError::from)?;
+        txn.commit().await?;
 
+        Ok(())
+    }
+
+    async fn delete(&self, id: Uuid) -> Result<(), MemeError> {
+        let db = self.db.get_connection().await?;
+        let txn = db.begin().await?;
+
+        let model = db_entity::memes::Entity::find_by_id(id).one(&db).await?;
+        if let Some(meme) = model {
+            db_entity::meme_urls::Entity::delete_many()
+                .filter(db_entity::meme_urls::Column::MemeId.eq(meme.id))
+                .exec(&txn)
+                .await?;
+            meme.delete(&txn).await?;
+        }
+
+        txn.commit().await?;
         Ok(())
     }
 }
@@ -190,8 +207,7 @@ where
             ..memes::ActiveModel::new()
         }
         .insert(db)
-        .await
-        .map_err(MemeError::from)?;
+        .await?;
 
         let memes: Vec<_> = meme
             .memes
@@ -207,10 +223,7 @@ where
             })
             .collect();
 
-        meme_urls::Entity::insert_many(memes)
-            .exec(db)
-            .await
-            .map_err(MemeError::from)?;
+        meme_urls::Entity::insert_many(memes).exec(db).await?;
 
         Ok(())
     }

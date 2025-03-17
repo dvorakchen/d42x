@@ -1,11 +1,12 @@
 use axum::{
     Extension, Json,
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::Response,
 };
+use sea_orm::prelude::Uuid;
 use serde::Deserialize;
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::{
     app::shared_data::{CategoryRepoSSType, MemeRepoSSType},
@@ -81,4 +82,20 @@ pub async fn list_memes(
         .await;
 
     Json(list).into_response()
+}
+
+pub async fn delete_meme(
+    Path(id): Path<Uuid>,
+    State(meme_repo): State<MemeRepoSSType>,
+    Extension(admin_user): Extension<AdminUser>,
+) -> Response {
+    need_administrator!(admin_user.id);
+    debug!("id: {}", id);
+
+    if let Ok(_) = meme_repo.repo.delete(id).await {
+        StatusCode::OK
+    } else {
+        StatusCode::INTERNAL_SERVER_ERROR
+    }
+    .into_response()
 }

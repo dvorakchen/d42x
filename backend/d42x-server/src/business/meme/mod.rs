@@ -24,6 +24,10 @@ pub trait MemeRepository {
     async fn post_memes(&self, _memes: Vec<PostMeme>) -> Result<(), MemeError> {
         unimplemented!()
     }
+
+    async fn delete(&self, _id: Uuid) -> Result<(), MemeError> {
+        unimplemented!()
+    }
 }
 
 pub struct PanicMemeRepository;

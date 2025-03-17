@@ -2,14 +2,14 @@ pub mod middlewares;
 pub mod shared_data;
 
 use crate::controllers::{
-    admin::{change_password, check_logged_in, list_memes, log_in, post_memes},
+    admin::{change_password, check_logged_in, delete_meme, list_memes, log_in, post_memes},
     client::ui::{get_categories, get_paginated_memes},
 };
 use axum::{
     Router,
     http::{HeaderName, HeaderValue, Method, header::AUTHORIZATION},
     middleware,
-    routing::{get, post, put},
+    routing::{delete, get, post, put},
 };
 use middlewares::{CipherLayer, jwt_auth_middleware};
 use shared_data::{
@@ -99,7 +99,9 @@ impl AppBuilder {
                     // .with_state(cate_repo.clone())
                     .route("/post-memes", post(post_memes))
                     .with_state(app_state.clone())
-                    .route("/memes", get(list_memes).with_state(app_state.clone())),
+                    .route("/memes", get(list_memes))
+                    .route("/memes/{id}", delete(delete_meme))
+                    .with_state(app_state.clone()),
             )
             .nest(
                 "/client",
@@ -185,7 +187,7 @@ impl AppBuilder {
 
         CorsLayer::new()
             .allow_origin(allow_orgin)
-            .allow_methods([Method::GET, Method::POST, Method::PUT])
+            .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
             .allow_headers([
                 AUTHORIZATION,
                 HeaderName::from_lowercase(b"x-date").unwrap(),
