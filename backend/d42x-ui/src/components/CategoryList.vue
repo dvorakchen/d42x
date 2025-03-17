@@ -4,6 +4,7 @@ import { getCategoryList } from "../net/category";
 import type { CategoryModel } from "../net/models";
 import Icon from "./Icon.vue";
 import { mdiDotsGrid, mdiShapePlus } from "@mdi/js";
+import { RouterLink } from "vue-router";
 
 const categories = ref([] as CategoryModel[]);
 
@@ -23,18 +24,18 @@ onMounted(async () => {
 
     <ul>
       <li>
-        <a
+        <RouterLink
           class="flex items-center gap-2 w-auto px-2 py-1 rounded hover:bg-accent hover:text-accent-content"
-          href="/"
+          to="/"
         >
-          <Icon :d="mdiDotsGrid" :size="20" />全部</a
+          <Icon :d="mdiDotsGrid" :size="20" />全部</RouterLink
         >
       </li>
       <li v-for="category in categories" :key="category.id">
-        <a
+        <RouterLink
           class="block w-auto px-2 py-1 rounded hover:bg-accent hover:text-accent-content"
-          :href="`/?category=${category.name}`"
-          >{{ category.name }}</a
+          :to="`/?category=${category.name}`"
+          >{{ category.name }}</RouterLink
         >
       </li>
     </ul>

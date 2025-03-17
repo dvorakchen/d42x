@@ -26,7 +26,7 @@ function handleExpand() {
   <main class="min-h-screen flex flex-col">
     <div class="flex-grow w-full max-w-7xl m-auto pt-16 pb-16 px-4">
       <h1 class="text-4xl font-bold">
-        <a href="/">D42X</a>
+        <RouterLink to="/">D42X</RouterLink>
         <span class="text-sm font-medium"> - {{ showSlug }}</span>
       </h1>
       <nav class="md:hidden pt-8">

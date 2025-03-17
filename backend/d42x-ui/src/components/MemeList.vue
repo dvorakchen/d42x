@@ -1,19 +1,32 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import qs from "qs";
+import { computed, onMounted, ref, watch } from "vue";
 import { getPaginatedMemeList, skeletonMemeList } from "../net/meme";
 import MemeGroup from "./MemeGroup.vue";
+import { useRoute } from "vue-router";
 
 const curPage = ref(0);
 const totalPage = ref(1);
 const loading = ref(false);
 const memeList = ref(skeletonMemeList);
 
+const route = useRoute();
+
 onMounted(async () => {
   await loadNextPage(() => {
     memeList.value = [];
   });
 });
+
+watch(
+  () => route.query,
+  async () => {
+    curPage.value = 0;
+    await loadNextPage(() => {
+      memeList.value = [];
+    });
+  },
+  { immediate: true }
+);
 
 const canLoadMore = computed(() => {
   return totalPage.value > curPage.value;
@@ -26,18 +39,12 @@ async function loadNextPage(beforeLoad?: Function) {
   loading.value = true;
   curPage.value++;
 
-  let fullQ = location.search;
-  if (fullQ.startsWith("?")) {
-    fullQ = fullQ.substring(1);
-  }
-  const q = qs.parse(fullQ);
-
   const paginatedList = await getPaginatedMemeList(
     curPage.value,
-    (q.category ?? "") as string
+    (route.query.category ?? "") as string
   );
   curPage.value = paginatedList.page;
-  totalPage.value = paginatedList.total;
+  totalPage.value = paginatedList.total > 0 ? paginatedList.total : 1;
 
   if (beforeLoad) {
     beforeLoad();
