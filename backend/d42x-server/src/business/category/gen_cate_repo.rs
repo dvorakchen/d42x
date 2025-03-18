@@ -44,8 +44,6 @@ where
     TDb: DbConnHelper + Sync + Send,
 {
     async fn get_categories(&self) -> Vec<super::CategoryItem> {
-        debug!("get categories");
-
         if let Some(cache) = &self.cache {
             if let Some(value) = cache.get(&TOP_CATEGORIES_CACHE_KEY) {
                 if let Ok(value) = serde_json::from_str::<Vec<CategoryItem>>(value.as_str()) {

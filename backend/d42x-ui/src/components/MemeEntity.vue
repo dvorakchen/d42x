@@ -19,18 +19,25 @@ onMounted(() => {
 
 function handleZoom(ev: MouseEvent) {
   const img = ev.target as HTMLImageElement;
-  img.classList.toggle("w-48");
-  img.classList.toggle("max-h-64");
+  img.classList.toggle("max-h-96");
   img.classList.toggle("cursor-zoom-in");
   img.classList.toggle("cursor-zoom-out");
+  if (img.classList.contains("max-h-96")) {
+    img.scrollIntoView({
+      block: "center",
+      behavior: "smooth",
+    });
+  }
 }
 </script>
 
 <template>
-  <img
-    class="w-48 max-h-64 object-contain rounded-lg cursor-zoom-in"
-    :src="showUrl"
-    alt="image"
-    @click="handleZoom"
-  />
+  <div class="w-full flex justify-center">
+    <img
+      class="max-h-96 object-contain rounded-lg cursor-zoom-in"
+      :src="showUrl"
+      alt="image"
+      @click="handleZoom"
+    />
+  </div>
 </template>

@@ -57,7 +57,6 @@ where
 {
     async fn get_paginated_memes(&self, page: u64, category: Option<String>) -> Pagination<Meme> {
         let key = get_paginated_meme_cache_key(page, &category);
-        debug!("cache key: {}", key);
         if let Some(cache) = &self.cache {
             if let Some(value) = cache.get(&key) {
                 if let Ok(value) = serde_json::from_str::<Pagination<Meme>>(value.as_str()) {
@@ -163,6 +162,10 @@ where
 
         txn.commit().await?;
 
+        if let Some(cache) = &self.cache {
+            cache.clear();
+        }
+
         Ok(())
     }
 
@@ -180,6 +183,11 @@ where
         }
 
         txn.commit().await?;
+
+        if let Some(cache) = &self.cache {
+            cache.clear();
+        }
+
         Ok(())
     }
 }

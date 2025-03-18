@@ -6,7 +6,7 @@ use axum::{
 };
 use sea_orm::prelude::Uuid;
 use serde::Deserialize;
-use tracing::{debug, error};
+use tracing::error;
 
 use crate::{
     app::shared_data::{CategoryRepoSSType, MemeRepoSSType},
@@ -90,7 +90,6 @@ pub async fn delete_meme(
     Extension(admin_user): Extension<AdminUser>,
 ) -> Response {
     need_administrator!(admin_user.id);
-    debug!("id: {}", id);
 
     if let Ok(_) = meme_repo.repo.delete(id).await {
         StatusCode::OK
