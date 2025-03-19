@@ -3,7 +3,7 @@ import { decrypt } from "./cipher.ts";
 
 const APPLICATION_JSON = "application/json;charset=UTF-8";
 
-export const http = axios.create({
+export const serverApi = axios.create({
   baseURL: import.meta.env.VITE_NET_BASE_URL,
   timeout: 10_000,
   validateStatus: function (status) {
@@ -11,7 +11,7 @@ export const http = axios.create({
   },
 });
 
-http.interceptors.response.use(
+serverApi.interceptors.response.use(
   function (response: AxiosResponse<string, any>) {
     let data = response.data;
     if ((data?.length ?? 0) !== 0) {

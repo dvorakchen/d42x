@@ -21,11 +21,23 @@ pub trait MemeRepository {
         unimplemented!()
     }
 
+    async fn get_interactions(&self, _ids: Vec<Uuid>) -> Vec<Interaction> {
+        unimplemented!()
+    }
+
     async fn post_memes(&self, _memes: Vec<PostMeme>) -> Result<(), MemeError> {
         unimplemented!()
     }
 
     async fn delete(&self, _id: Uuid) -> Result<(), MemeError> {
+        unimplemented!()
+    }
+
+    async fn like_increase(&self, _id: Uuid) -> Result<(), MemeError> {
+        unimplemented!()
+    }
+
+    async fn unlike_increase(&self, _id: Uuid) -> Result<(), MemeError> {
         unimplemented!()
     }
 }
@@ -45,8 +57,6 @@ pub struct GetFilter {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Meme {
     pub id: Uuid,
-    pub likes: usize,
-    pub unlikes: usize,
     pub categories: Vec<String>,
     pub nickname: String,
     pub show_date_time: DateTime<FixedOffset>,
@@ -81,6 +91,13 @@ pub struct PostMemeUrl {
     pub format: AllowMemeFormats,
     pub hash: String,
     pub bed_id: String,
+}
+
+#[derive(Serialize, Debug)]
+pub struct Interaction {
+    id: Uuid,
+    likes: i32,
+    unlikes: i32,
 }
 
 #[derive(Error, Debug)]

@@ -13,7 +13,7 @@ onMounted(async () => {
 
 <template>
   <div
-    class="flex flex-col gap-4 h-full py-4 pr-2 border-r border-base-content"
+    class="flex flex-col gap-4 h-full my-4 pr-2 border-r border-base-content"
   >
     <div class="flex items-center gap-2">
       <span class="text-xl">📔</span>

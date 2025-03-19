@@ -3,11 +3,17 @@ pub mod shared_data;
 
 use crate::controllers::{
     admin::{change_password, check_logged_in, delete_meme, list_memes, log_in, post_memes},
-    client::ui::{get_categories, get_paginated_memes},
+    client::{
+        interaction::{get_interactions, like_increase, unlike_increase},
+        ui::{get_categories, get_paginated_memes},
+    },
 };
 use axum::{
     Router,
-    http::{HeaderName, HeaderValue, Method, header::AUTHORIZATION},
+    http::{
+        HeaderName, HeaderValue, Method,
+        header::{AUTHORIZATION, CONTENT_TYPE},
+    },
     middleware,
     routing::{delete, get, post, put},
 };
@@ -95,25 +101,20 @@ impl AppBuilder {
                     .route("/login", post(log_in))
                     .route("/change-password", put(change_password))
                     .route("/categories", get(get_categories))
-                    .with_state(app_state.clone())
-                    // .with_state(cate_repo.clone())
                     .route("/post-memes", post(post_memes))
-                    .with_state(app_state.clone())
                     .route("/memes", get(list_memes))
-                    .route("/memes/{id}", delete(delete_meme))
-                    .with_state(app_state.clone()),
+                    .route("/memes/{id}", delete(delete_meme)),
             )
             .nest(
                 "/client",
                 Router::new()
                     .route("/categories", get(get_categories))
-                    .with_state(app_state.clone())
-                    // .with_state(cate_repo)
-                    .route(
-                        "/memes",
-                        get(get_paginated_memes).with_state(app_state.clone()),
-                    ), // .with_state(meme_repo),
-            );
+                    .route("/memes", get(get_paginated_memes))
+                    .route("/memes/interactions", post(get_interactions))
+                    .route("/memes/{id}/like", put(like_increase))
+                    .route("/memes/{id}/unlike", put(unlike_increase)),
+            )
+            .with_state(app_state.clone());
         // .with_state(meme_repo);
 
         let router = Router::new()
@@ -190,6 +191,7 @@ impl AppBuilder {
             .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
             .allow_headers([
                 AUTHORIZATION,
+                CONTENT_TYPE,
                 HeaderName::from_lowercase(b"x-date").unwrap(),
             ])
     }

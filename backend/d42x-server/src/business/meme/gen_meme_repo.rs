@@ -1,5 +1,9 @@
 use crate::{
-    business::{Pagination, cache::Cache, meme::MemeUrl},
+    business::{
+        Pagination,
+        cache::Cache,
+        meme::{Interaction, MemeUrl},
+    },
     db::DbConnHelper,
 };
 use chrono::{DateTime, FixedOffset, Utc};
@@ -141,6 +145,25 @@ where
         result
     }
 
+    async fn get_interactions(&self, ids: Vec<Uuid>) -> Vec<Interaction> {
+        let db = self.db.get_connection().await.expect("get db failed");
+
+        let models: Vec<_> = db_entity::memes::Entity::find()
+            .filter(memes::Column::Id.is_in(ids))
+            .all(&db)
+            .await
+            .expect("query interactions failed")
+            .into_iter()
+            .map(|model| Interaction {
+                id: model.id,
+                likes: model.likes,
+                unlikes: model.unlikes,
+            })
+            .collect();
+
+        models
+    }
+
     async fn post_memes(&self, memes: Vec<PostMeme>) -> Result<(), MemeError> {
         if let Some(cache) = &self.cache {
             cache.clear();
@@ -189,6 +212,38 @@ where
         }
 
         Ok(())
+    }
+
+    async fn like_increase(&self, id: Uuid) -> Result<(), MemeError> {
+        let db = self.db.get_connection().await?;
+
+        let meme = db_entity::memes::Entity::find_by_id(id)
+            .one(&db)
+            .await?
+            .ok_or(MemeError::HasNotAnyMeme)?;
+        let likes = meme.likes + 1;
+        let mut meme: db_entity::memes::ActiveModel = meme.into();
+        meme.likes = Set(likes);
+
+        meme.update(&db).await?;
+
+        return Ok(());
+    }
+
+    async fn unlike_increase(&self, id: Uuid) -> Result<(), MemeError> {
+        let db = self.db.get_connection().await?;
+
+        let meme = db_entity::memes::Entity::find_by_id(id)
+            .one(&db)
+            .await?
+            .ok_or(MemeError::HasNotAnyMeme)?;
+        let unlikes = meme.unlikes + 1;
+        let mut meme: db_entity::memes::ActiveModel = meme.into();
+        meme.unlikes = Set(unlikes);
+
+        meme.update(&db).await?;
+
+        return Ok(());
     }
 }
 
@@ -256,8 +311,6 @@ async fn models_2_meme_list(
     for item in models {
         meme_list.push(Meme {
             id: item.id,
-            likes: item.likes as usize,
-            unlikes: item.unlikes as usize,
             categories: item
                 .categories
                 .split(';')

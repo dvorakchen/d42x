@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { getPaginatedMemeList, skeletonMemeList } from "../net/meme";
 import MemeGroup from "./MemeGroup.vue";
 import { useRoute } from "vue-router";
+import { getInteractions } from "../net/interactions";
 
 const curPage = ref(0);
 const totalPage = ref(1);
@@ -50,7 +51,19 @@ async function loadNextPage(beforeLoad?: Function) {
     beforeLoad();
   }
 
+  const ids = paginatedList.list.map((item) => item.id);
+  const interactions = await getInteractions(ids);
+
   memeList.value.push(...paginatedList.list);
+
+  for (const item of interactions) {
+    const meme = memeList.value.find((t) => t.id === item.id);
+    if (meme === undefined) {
+      continue;
+    }
+    meme.likes = item.likes;
+    meme.unlikes = item.unlikes;
+  }
 
   loading.value = false;
 }

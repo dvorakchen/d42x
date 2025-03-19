@@ -4,10 +4,62 @@ import { toYYYYMMDDHHmmss } from "../utilities/date";
 import type { MemeEntityModel } from "../net/models";
 import Icon from "./Icon.vue";
 import { mdiDotsHorizontal, mdiHeart, mdiHeartBroken } from "@mdi/js";
+import { onMounted, ref } from "vue";
+import { useInteractStore, type Interaction } from "../stores/interaction";
+import { serverApi } from "../net/http";
 
-defineProps<{
+const props = defineProps<{
   meme: MemeEntityModel;
 }>();
+
+const interactStore = useInteractStore();
+const like = ref(false);
+const unlike = ref(false);
+const interactRecord = ref(null as Interaction | null);
+
+onMounted(() => {
+  interactRecord.value = interactStore.getRecord(props.meme.id) ?? {
+    like: false,
+    unlike: false,
+  };
+
+  like.value = interactRecord.value.like;
+  unlike.value = interactRecord.value.unlike;
+});
+
+async function handleLike() {
+  if (
+    interactRecord.value === null ||
+    interactRecord.value.like ||
+    like.value
+  ) {
+    return;
+  }
+  like.value = true;
+  props.meme.likes++;
+
+  const resp = await serverApi.put(`memes/${props.meme.id}/like`);
+  if (resp.status === 200) {
+    interactStore.like(props.meme.id, like.value);
+  }
+}
+
+async function handleUnlike() {
+  if (
+    interactRecord.value === null ||
+    interactRecord.value.unlike ||
+    unlike.value
+  ) {
+    return;
+  }
+  unlike.value = true;
+  props.meme.unlikes++;
+
+  const resp = await serverApi.put(`memes/${props.meme.id}/unlike`);
+  if (resp.status === 200) {
+    interactStore.unlike(props.meme.id, unlike.value);
+  }
+}
 </script>
 
 <template>
@@ -37,24 +89,28 @@ defineProps<{
     <MemeEntity v-for="entity in meme.list" :key="entity.id" :entity="entity" />
   </div>
   <div class="mt-4 space-x-4 flex">
-    <span class="flex items-center w-16">
-      <label class="swap swap-flip text-2xl">
-        <input type="checkbox" />
-        <div class="swap-on">❤️</div>
-        <div class="swap-off flex items-center justify-center">
-          <Icon :d="mdiHeart" />
-        </div>
-      </label>
+    <span class="flex items-center gap-2 w-16"
+      ><div class="cursor-pointer relative" @click="handleLike">
+        <span
+          v-if="like"
+          class="absolute inset-0 animate-[ping_1s_cubic-bezier(0,0,0.2,1)_none]"
+        >
+          <Icon :d="mdiHeart" :color="'red'" />
+        </span>
+        <Icon :d="mdiHeart" :color="like ? 'red' : ''" />
+      </div>
       <span>{{ meme.likes }}</span>
     </span>
     <span class="flex items-center">
-      <label class="swap swap-flip text-2xl">
-        <input type="checkbox" />
-        <div class="swap-on">💔</div>
-        <div class="swap-off flex items-center justify-center">
-          <Icon :d="mdiHeartBroken" :size="23" />
-        </div>
-      </label>
+      <div class="cursor-pointer relative" @click="handleUnlike">
+        <span
+          v-if="unlike"
+          class="absolute inset-0 animate-[ping_1s_cubic-bezier(0,0,0.2,1)_none]"
+        >
+          <Icon :d="mdiHeartBroken" :color="'grey'" />
+        </span>
+        <Icon :d="mdiHeartBroken" :color="unlike ? 'grey' : ''" />
+      </div>
       <span>{{ meme.unlikes }}</span>
     </span>
   </div>

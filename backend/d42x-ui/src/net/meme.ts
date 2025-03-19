@@ -1,9 +1,9 @@
-import { http } from "./http";
+import { serverApi } from "./http";
 import type { MemeEntityModel, PaginatedModel } from "./models";
 import placeholderImg from "../assets/placeholder-img.png";
 
 export async function getPaginatedMemeList(page: number, category: string) {
-  const resp = await http.get<PaginatedModel<MemeEntityModel>>(
+  const resp = await serverApi.get<PaginatedModel<MemeEntityModel>>(
     `memes?page=${page}&category=${category}`
   );
   return resp.data;
