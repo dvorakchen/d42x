@@ -4,7 +4,7 @@ use crate::{business::cache::Cache, db::DbConnHelper};
 use db_entity::categories;
 use migration::async_trait;
 use sea_orm::prelude::Uuid;
-use sea_orm::{ActiveModelBehavior, ColumnTrait, EntityTrait, QueryFilter, QueryOrder, Set};
+use sea_orm::{ActiveModelBehavior, DbBackend, EntityTrait, FromQueryResult, Set, Statement};
 use serde_json::json;
 use tracing::debug;
 
@@ -37,6 +37,13 @@ where
     }
 }
 
+#[derive(Debug, FromQueryResult)]
+struct CategoriesWithMemeCount {
+    pub id: Uuid,
+    pub name: String,
+    pub meme_count: i64,
+}
+
 #[async_trait::async_trait]
 impl<TCache, TDb> CategoryRepository for GenCategoryRepo<TCache, TDb>
 where
@@ -60,18 +67,36 @@ where
 
         let db = self.db.get_connection().await.unwrap();
 
-        let category_list: Vec<_> = categories::Entity::find()
-            .filter(categories::Column::Parent.eq(Uuid::nil()))
-            .order_by_asc(categories::Column::Name)
+        let category_list: Vec<_> =
+            CategoriesWithMemeCount::find_by_statement(Statement::from_string(
+                DbBackend::Postgres,
+                r#"select a.id, a.name, count(b.id) as meme_count from categories as a 
+            left join memes as b on b.categories like concat('%;',a.name, ';%') 
+            group by a.id, a.name order by meme_count desc;"#,
+            ))
             .all(&db)
             .await
             .unwrap()
             .into_iter()
-            .map(|category| CategoryItem {
-                id: category.id,
-                name: category.name,
+            .map(|cwm| CategoryItem {
+                id: cwm.id,
+                name: cwm.name,
+                meme_count: cwm.meme_count,
             })
             .collect();
+
+        // let category_list: Vec<_> = categories::Entity::find()
+        //     .filter(categories::Column::Parent.eq(Uuid::nil()))
+        //     .order_by_asc(categories::Column::Name)
+        //     .all(&db)
+        //     .await
+        //     .unwrap()
+        //     .into_iter()
+        //     .map(|category| CategoryItem {
+        //         id: category.id,
+        //         name: category.name,
+        //     })
+        //     .collect();
 
         if let Some(cache) = &self.cache {
             let cache_value = json!(category_list).to_string();

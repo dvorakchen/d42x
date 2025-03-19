@@ -19,6 +19,7 @@ pub trait CategoryRepository {
 pub struct CategoryItem {
     pub id: Uuid,
     pub name: String,
+    pub meme_count: i64,
 }
 
 pub struct PanicCategoryRepo;

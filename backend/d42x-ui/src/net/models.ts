@@ -3,6 +3,7 @@ import type { AllowMemeFormats } from "../config";
 export type CategoryModel = {
   id: string;
   name: string;
+  meme_count: number;
 };
 
 export type PaginatedModel<T> = {
