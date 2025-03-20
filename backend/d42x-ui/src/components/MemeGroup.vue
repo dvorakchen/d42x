@@ -71,7 +71,7 @@ async function handleUnlike() {
 </script>
 
 <template>
-  <header class="flex flex-col gap-4 mb-2 text-sm">
+  <header class="flex flex-col mb-2 text-sm">
     <div class="flex gap-2">
       <div class="flex-grow space-x-1">
         <RouterLink
