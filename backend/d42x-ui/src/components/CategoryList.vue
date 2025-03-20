@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { getCategoryList } from "../net/category";
 import type { CategoryModel } from "../net/models";
 import { RouterLink } from "vue-router";
+import { CategoryEmoji } from "../utilities/emoji";
 
 const categories = ref([] as CategoryModel[]);
 
@@ -34,7 +35,10 @@ onMounted(async () => {
         <RouterLink
           class="block w-auto px-2 py-1 rounded hover:bg-accent hover:text-accent-content"
           :to="`/?category=${category.name}`"
-          >{{ category.name }}</RouterLink
+          >{{
+            CategoryEmoji[Math.floor(Math.random() * CategoryEmoji.length)]
+          }}
+          {{ category.name }}</RouterLink
         >
       </li>
     </ul>

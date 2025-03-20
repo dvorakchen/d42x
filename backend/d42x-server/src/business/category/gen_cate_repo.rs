@@ -39,9 +39,9 @@ where
 
 #[derive(Debug, FromQueryResult)]
 struct CategoriesWithMemeCount {
-    pub id: Uuid,
-    pub name: String,
-    pub meme_count: i64,
+    id: Uuid,
+    name: String,
+    meme_count: i64,
 }
 
 #[async_trait::async_trait]

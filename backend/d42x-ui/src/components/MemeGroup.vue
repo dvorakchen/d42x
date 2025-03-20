@@ -15,6 +15,8 @@ const props = defineProps<{
 const interactStore = useInteractStore();
 const like = ref(false);
 const unlike = ref(false);
+const liked = ref(false);
+const unliked = ref(false);
 const interactRecord = ref(null as Interaction | null);
 
 onMounted(() => {
@@ -28,6 +30,9 @@ onMounted(() => {
 });
 
 async function handleLike() {
+  if (like.value) {
+    liked.value = true;
+  }
   if (
     interactRecord.value === null ||
     interactRecord.value.like ||
@@ -45,6 +50,9 @@ async function handleLike() {
 }
 
 async function handleUnlike() {
+  if (unlike.value) {
+    unliked.value = true;
+  }
   if (
     interactRecord.value === null ||
     interactRecord.value.unlike ||
@@ -88,12 +96,15 @@ async function handleUnlike() {
   >
     <MemeEntity v-for="entity in meme.list" :key="entity.id" :entity="entity" />
   </div>
+  <!-- interactions -->
   <div class="mt-4 space-x-4 flex">
     <span class="flex items-center gap-2 w-16"
       ><div class="cursor-pointer relative" @click="handleLike">
         <span
           v-if="like"
           class="absolute inset-0 animate-[ping_1s_cubic-bezier(0,0,0.2,1)_none]"
+          :class="{ tooltip: liked }"
+          data-tip="你已经❤️过了"
         >
           <Icon :d="mdiHeart" :color="'red'" />
         </span>
@@ -106,6 +117,8 @@ async function handleUnlike() {
         <span
           v-if="unlike"
           class="absolute inset-0 animate-[ping_1s_cubic-bezier(0,0,0.2,1)_none]"
+          :class="{ tooltip: unliked }"
+          data-tip="你已经💔过了"
         >
           <Icon :d="mdiHeartBroken" :color="'grey'" />
         </span>
