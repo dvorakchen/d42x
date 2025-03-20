@@ -74,7 +74,7 @@ async function loadMore() {
 </script>
 
 <template>
-  <main class="flex flex-col gap-8 lg:w-xl max-w-full">
+  <main class="flex flex-col gap-8 lg:w-2xl max-w-full">
     <ul class="flex flex-col gap-1">
       <li v-for="meme in memeList" :key="meme.id">
         <MemeGroup :meme="meme" />

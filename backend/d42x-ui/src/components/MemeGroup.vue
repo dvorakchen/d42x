@@ -92,7 +92,7 @@ async function handleUnlike() {
     </div>
   </header>
   <div
-    class="flex flex-col gap-2 p-2 w-full min-h-64 bg-black border border-base-content rounded-lg"
+    class="flex flex-col justify-center gap-2 p-2 w-full min-h-64 bg-black border border-base-content rounded-lg"
   >
     <MemeEntity v-for="entity in meme.list" :key="entity.id" :entity="entity" />
   </div>

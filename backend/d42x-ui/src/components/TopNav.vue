@@ -39,7 +39,7 @@ function handleExpand() {
             'grid-rows-[0fr]': !expanded,
           }"
         >
-          <div class="overflow-hidden">
+          <div class="max-h-[80vh] overflow-y-scroll">
             <CategoryList />
           </div>
         </div>
