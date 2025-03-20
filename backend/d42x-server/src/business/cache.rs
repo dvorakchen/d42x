@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 pub trait Cache<TKey, TValue> {
     /// insert a value by key, return the old value if already existed
     fn insert(&self, key: TKey, value: TValue) -> Option<TValue>;
@@ -17,7 +19,11 @@ pub struct MokaCache {
 
 impl MokaCache {
     pub fn new() -> Self {
-        let cache = moka::sync::Cache::new(DEFAULT_CACHE_LENGTH);
+        let cache = moka::sync::Cache::builder()
+            .max_capacity(DEFAULT_CACHE_LENGTH)
+            .time_to_live(Duration::from_secs(30 * 60))
+            .build();
+
         Self { cache }
     }
 }

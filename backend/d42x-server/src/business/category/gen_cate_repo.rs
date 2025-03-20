@@ -85,19 +85,6 @@ where
             })
             .collect();
 
-        // let category_list: Vec<_> = categories::Entity::find()
-        //     .filter(categories::Column::Parent.eq(Uuid::nil()))
-        //     .order_by_asc(categories::Column::Name)
-        //     .all(&db)
-        //     .await
-        //     .unwrap()
-        //     .into_iter()
-        //     .map(|category| CategoryItem {
-        //         id: category.id,
-        //         name: category.name,
-        //     })
-        //     .collect();
-
         if let Some(cache) = &self.cache {
             let cache_value = json!(category_list).to_string();
             debug!("set cache data: {:?}", cache_value);
