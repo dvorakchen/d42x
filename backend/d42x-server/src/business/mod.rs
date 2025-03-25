@@ -4,6 +4,7 @@ pub mod auth;
 pub mod cache;
 pub mod category;
 pub mod meme;
+pub mod suggests;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Pagination<T: std::fmt::Debug> {

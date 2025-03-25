@@ -64,11 +64,19 @@ impl TryFrom<&str> for Status {
 pub enum Relation {
     #[sea_orm(has_many = "super::meme_urls::Entity")]
     MemeUrls,
+    #[sea_orm(has_many = "super::suggests::Entity")]
+    Suggests,
 }
 
 impl Related<super::meme_urls::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::MemeUrls.def()
+    }
+}
+
+impl Related<super::suggests::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Suggests.def()
     }
 }
 

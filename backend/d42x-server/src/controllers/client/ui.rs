@@ -1,13 +1,18 @@
 use axum::{
     Json,
     extract::{Query, State},
+    http::StatusCode,
+    response::{IntoResponse, Response},
 };
 use serde::Deserialize;
+use validator::Validate;
 
 use crate::{
-    app::shared_data::{CategoryRepoSSType, MemeRepoSSType},
+    app::shared_data::{CategoryRepoSSType, MemeRepoSSType, SuggestRepoSSType},
     business::category::CategoryItem,
 };
+
+use super::models::CreateSuggestReq;
 
 #[derive(Deserialize)]
 pub struct Pagination {
@@ -37,4 +42,24 @@ pub async fn get_categories(
     };
 
     Json(list)
+}
+
+pub async fn create_suggest(
+    State(suggest_repo): State<SuggestRepoSSType>,
+    Json(req): Json<CreateSuggestReq>,
+) -> Response {
+    if let Err(_) = req.validate() {
+        return (StatusCode::BAD_REQUEST).into_response();
+    }
+
+    if let Ok(()) = suggest_repo
+        .repo
+        .create(req.meme_id, req.list, req.apply_user_id)
+        .await
+    {
+        StatusCode::OK
+    } else {
+        StatusCode::INTERNAL_SERVER_ERROR
+    }
+    .into_response()
 }

@@ -1,0 +1,13 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "dependencies": {
+        "@types/clone": "^2.1.4",
+      },
+    },
+  },
+  "packages": {
+    "@types/clone": ["@types/clone@2.1.4", "https://registry.npmmirror.com/@types/clone/-/clone-2.1.4.tgz", {}, "sha512-NKRWaEGaVGVLnGLB2GazvDaZnyweW9FJLLFL5LhywGJB3aqGMT9R/EUoJoSRP4nzofYnZysuDmrEJtJdAqUOtQ=="],
+  }
+}

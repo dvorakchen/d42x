@@ -13,6 +13,10 @@ pub trait CategoryRepository {
     async fn append_categories(&self, _list: Vec<String>) {
         unimplemented!()
     }
+
+    async fn update_catgories(&self, _meme_id: Uuid, _new_list: Vec<String>) {
+        unimplemented!()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]

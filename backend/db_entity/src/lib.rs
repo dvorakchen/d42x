@@ -4,6 +4,7 @@ pub mod accounts;
 pub mod categories;
 pub mod memes;
 pub mod meme_urls;
+pub mod suggests;
 pub mod prelude;
 
 pub const DEFAULT_CATEGORY: &str = "meme";

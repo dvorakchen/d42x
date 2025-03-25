@@ -1,9 +1,9 @@
 use clap::Parser;
 use d42x_server::{
-    app::shared_data::{CategoryRepoSS, MemeRepoSS},
+    app::shared_data::{CategoryRepoSS, MemeRepoSS, SuggestRepoSS},
     business::{
         cache::MokaCache, category::gen_cate_repo::GenCategoryRepo,
-        meme::gen_meme_repo::GenMemeRepo,
+        meme::gen_meme_repo::GenMemeRepo, suggests::gen_suggest_repo::GenSuggestRepo,
     },
     config,
     db::shared_db_helper::SharedDbHelper,
@@ -59,12 +59,14 @@ fn set_log() {
 async fn build_run() {
     let cate_repo = category_repo_shared_state();
     let meme_repo = meme_repo_shared_state();
+    let suggest_repo = suggest_repo_shared_state();
 
     d42x_server::app::AppBuilder::new()
         .address(config::ADDRESS.to_string())
         .cors(config::CORS.to_string())
         .category_repo(cate_repo)
         .meme_repo(meme_repo)
+        .suggest_repo(suggest_repo)
         .aes_key(config::KEY.to_string())
         .aes_iv(config::IV.clone())
         .build()
@@ -83,6 +85,12 @@ fn meme_repo_shared_state() -> MemeRepoSS {
     let db = SharedDbHelper::new(config::DATABASE_URL.to_string());
     let meme_repo = GenMemeRepo::with_cache(db, Some(MokaCache::new()));
     MemeRepoSS::new(meme_repo)
+}
+
+fn suggest_repo_shared_state() -> SuggestRepoSS {
+    let db = SharedDbHelper::new(config::DATABASE_URL.to_string());
+    let suggest_repo = GenSuggestRepo::new(db);
+    SuggestRepoSS::new(suggest_repo)
 }
 
 async fn fresh_db() -> Result<(), DbErr> {

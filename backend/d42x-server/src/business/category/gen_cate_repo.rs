@@ -4,7 +4,9 @@ use crate::{business::cache::Cache, db::DbConnHelper};
 use db_entity::categories;
 use migration::async_trait;
 use sea_orm::prelude::Uuid;
-use sea_orm::{ActiveModelBehavior, DbBackend, EntityTrait, FromQueryResult, Set, Statement};
+use sea_orm::{
+    ActiveModelBehavior, ActiveModelTrait, DbBackend, EntityTrait, FromQueryResult, Set, Statement,
+};
 use serde_json::json;
 use tracing::debug;
 
@@ -133,5 +135,35 @@ where
         if let Some(cache) = &self.cache {
             cache.remove(&TOP_CATEGORIES_CACHE_KEY);
         }
+    }
+
+    async fn update_catgories(&self, meme_id: Uuid, new_list: Vec<String>) {
+        let db = self
+            .db
+            .get_connection()
+            .await
+            .expect("update categories get db failed");
+
+        let mut model: db_entity::memes::ActiveModel =
+            db_entity::memes::Entity::find_by_id(meme_id)
+                .one(&db)
+                .await
+                .expect("update_categories get meme failed")
+                .expect("cannot find meme")
+                .into();
+
+        let new_category = new_list
+            .into_iter()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>()
+            .join(";");
+
+        model.categories = Set(format!(";{};", new_category));
+
+        model
+            .update(&db)
+            .await
+            .expect("update_categories update fail");
     }
 }

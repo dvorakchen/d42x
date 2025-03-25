@@ -2,10 +2,13 @@ pub mod middlewares;
 pub mod shared_data;
 
 use crate::controllers::{
-    admin::{change_password, check_logged_in, delete_meme, list_memes, log_in, post_memes},
+    admin::{
+        change_password, check_logged_in, delete_meme, list_memes, log_in, post_memes,
+        update_categories,
+    },
     client::{
         interaction::{get_interactions, like_increase, unlike_increase},
-        ui::{get_categories, get_paginated_memes},
+        ui::{create_suggest, get_categories, get_paginated_memes},
     },
 };
 use axum::{
@@ -20,6 +23,7 @@ use axum::{
 use middlewares::{CipherLayer, jwt_auth_middleware};
 use shared_data::{
     AppStates, CategoryRepoSS, CategoryRepoSSType, IntoRepoSSType, MemeRepoSS, MemeRepoSSType,
+    SuggestRepoSS, SuggestRepoSSType,
 };
 use soft_aes::aes::AES_BLOCK_SIZE;
 use tokio::net::TcpListener;
@@ -42,6 +46,7 @@ pub struct AppBuilder {
     cors: String,
     category_repo: Option<CategoryRepoSSType>,
     meme_repo: Option<MemeRepoSSType>,
+    suggest_repo: Option<SuggestRepoSSType>,
     aes_key: String,
     aes_iv: [u8; AES_BLOCK_SIZE],
 }
@@ -53,6 +58,7 @@ impl AppBuilder {
             cors: String::new(),
             category_repo: None,
             meme_repo: None,
+            suggest_repo: None,
             aes_key: String::new(),
             aes_iv: [0; 16],
         }
@@ -75,6 +81,11 @@ impl AppBuilder {
 
     pub fn meme_repo(mut self, repo: impl IntoRepoSSType<MemeRepoSSType>) -> Self {
         self.meme_repo = Some(repo.into_shared());
+        self
+    }
+
+    pub fn suggest_repo(mut self, repo: impl IntoRepoSSType<SuggestRepoSSType>) -> Self {
+        self.suggest_repo = Some(repo.into_shared());
         self
     }
 
@@ -101,6 +112,7 @@ impl AppBuilder {
                     .route("/login", post(log_in))
                     .route("/change-password", put(change_password))
                     .route("/categories", get(get_categories))
+                    .route("/categories/{meme_id}", put(update_categories))
                     .route("/post-memes", post(post_memes))
                     .route("/memes", get(list_memes))
                     .route("/memes/{id}", delete(delete_meme)),
@@ -112,7 +124,8 @@ impl AppBuilder {
                     .route("/memes", get(get_paginated_memes))
                     .route("/memes/interactions", post(get_interactions))
                     .route("/memes/{id}/like", put(like_increase))
-                    .route("/memes/{id}/unlike", put(unlike_increase)),
+                    .route("/memes/{id}/unlike", put(unlike_increase))
+                    .route("/suggests", post(create_suggest)),
             )
             .with_state(app_state.clone());
         // .with_state(meme_repo);
@@ -163,9 +176,16 @@ impl AppBuilder {
             MemeRepoSS::non().into_shared()
         };
 
+        let suggest_repo = if let Some(suggest_repo) = self.suggest_repo.take() {
+            suggest_repo
+        } else {
+            SuggestRepoSS::non().into_shared()
+        };
+
         AppStates {
             cate_repo,
             meme_repo,
+            suggest_repo,
         }
     }
 

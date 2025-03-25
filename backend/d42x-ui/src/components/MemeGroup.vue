@@ -8,6 +8,11 @@ import { onMounted, ref } from "vue";
 import { useInteractStore, type Interaction } from "../stores/interaction";
 import { serverApi } from "../net/http";
 
+// TODO
+// const emit = defineEmits<{
+//   (e: "editCategory", memeId: string): void;
+// }>();
+
 const props = defineProps<{
   meme: MemeEntityModel;
 }>();
@@ -68,12 +73,17 @@ async function handleUnlike() {
     interactStore.unlike(props.meme.id, unlike.value);
   }
 }
+
+// TODO
+// function handleEtitCategory() {
+//   emit("editCategory", props.meme.id);
+// }
 </script>
 
 <template>
-  <header class="flex flex-col mb-2 text-sm">
+  <header class="flex flex-col gap-2 mb-2 text-sm">
     <div class="flex gap-2">
-      <div class="flex-grow space-x-1">
+      <div class="flex-grow flex items-center gap-1 flex-wrap">
         <RouterLink
           :to="`/?category=${cate}`"
           class="badge badge-sm font-semibold text-nowrap odd:badge-primary even:badge-accent last:badge-info"
@@ -82,9 +92,18 @@ async function handleUnlike() {
           >{{ cate }}</RouterLink
         >
       </div>
-      <button class="btn btn-ghost btn-square">
-        <Icon :d="mdiDotsHorizontal" />
-      </button>
+      <div class="dropdown dropdown-end">
+        <button class="btn btn-ghost btn-square" tabindex="0" role="button">
+          <Icon :d="mdiDotsHorizontal" />
+        </button>
+        <ul
+          tabindex="0"
+          class="dropdown-content menu bg-info text-info-content font-bold rounded-box z-1 w-52 p-2 shadow-sm"
+        >
+          <!-- TODO -->
+          <!-- <li><a @click="handleEtitCategory">🚩标签建议</a></li> -->
+        </ul>
+      </div>
     </div>
     <div class="space-x-2">
       <span class="font-bold">{{ meme.nickname }}</span>

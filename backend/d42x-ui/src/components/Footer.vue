@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mdiEmail, mdiGithub } from "@mdi/js";
+import { mdiEmail } from "@mdi/js";
 import Icon from "./Icon.vue";
 </script>
 
@@ -25,10 +25,6 @@ import Icon from "./Icon.vue";
       >
         <Icon :d="mdiEmail" :size="20" />
         dvorakchen@outlook.com</a
-      >
-      <a class="link link-hover flex items-center gap-2">
-        <Icon :d="mdiGithub" :size="20" />
-        GitHub</a
       >
     </nav>
   </footer>

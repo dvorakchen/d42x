@@ -1,3 +1,4 @@
+mod category;
 mod memes;
 mod models;
 
@@ -16,6 +17,7 @@ use crate::{
 };
 
 pub use memes::*;
+pub use category::*;
 
 #[macro_export]
 macro_rules! need_administrator {
