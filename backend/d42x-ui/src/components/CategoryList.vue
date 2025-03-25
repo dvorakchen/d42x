@@ -104,7 +104,7 @@ function handleSearchClose() {
       </li>
       <li v-for="category in showList" :key="category.id">
         <RouterLink
-          class="block w-auto px-2 py-1 rounded hover:bg-accent hover:text-accent-content"
+          class="block w-auto px-2 py-1 rounded hover:bg-accent hover:text-accent-content line-clamp-1 text-nowrap"
           :class="{
             'bg-info': categoryQS === category.name,
             'text-info-content': categoryQS === category.name,
