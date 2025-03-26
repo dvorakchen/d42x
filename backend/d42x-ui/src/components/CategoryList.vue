@@ -73,8 +73,8 @@ function handleSearchClose() {
     </div>
 
     <form @submit.prevent="handleSearchCategory">
-      <label class="input input-xs w-auto ml-2">
-        <span class="label mr-0">🔎</span>
+      <label class="input input-xs w-auto ml-2 mr-1">
+        <span>🔎</span>
         <input
           ref="search-category"
           type="search"
