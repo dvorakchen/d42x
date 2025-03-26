@@ -1,8 +1,8 @@
 export enum AllowMemeFormats {
-  JPG,
-  JPEG,
-  PNG,
-  GIF,
-  WEBP,
-  WEBM,
+  JPG = "JPG",
+  JPEG = "JPEG",
+  PNG = "PNG",
+  GIF = "GIF",
+  WEBP = "WEBP",
+  WEBM = "WEBM",
 }

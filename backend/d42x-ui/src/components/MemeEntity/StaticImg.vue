@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { MemeUrlEntityModel } from "../net/models";
-import placeholderImg from "../assets/placeholder-img.png";
+import type { MemeUrlEntityModel } from "../../net/models";
+import placeholderImg from "../../assets/placeholder-img.png";
 import { onMounted, ref } from "vue";
 
 const props = defineProps<{

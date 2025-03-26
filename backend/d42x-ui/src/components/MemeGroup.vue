@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MemeEntity from "./MemeEntity.vue";
+import MemeEntity from "./MemeEntity/Index.vue";
 import { toYYYYMMDDHHmmss } from "../utilities/date";
 import type { MemeEntityModel } from "../net/models";
 import Icon from "./Icon.vue";
