@@ -19,6 +19,11 @@ const STATIC_FORMATS = new Set([
   <StaticImg :entity="entity" v-if="STATIC_FORMATS.has(props.entity.format)" />
   <AnimateImg
     :entity="entity"
-    v-if="props.entity.format === AllowMemeFormats.GIF"
+    v-else-if="
+      props.entity.format === AllowMemeFormats.GIF ||
+      (props.entity.format === AllowMemeFormats.WEBP &&
+        props.entity.cover !== '')
+    "
   />
+  <StaticImg :entity="entity" v-else />
 </template>

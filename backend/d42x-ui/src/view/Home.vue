@@ -11,7 +11,7 @@ import TopNav from "../components/TopNav.vue";
     class="relative grid grid-rows-[repeat(3,auto)] grid-cols-1 md:grid-cols-[repeat(3,auto)] min-h-screen"
   >
     <section
-      class="col-start-1 col-end-4 sticky top-0 z-30 px-2 md:px-16 lg:px-8 py-2 bg-base-100"
+      class="col-start-1 col-end-4 sticky top-0 z-30 px-2 md:px-8 py-2 bg-base-100"
     >
       <TopNav />
     </section>
