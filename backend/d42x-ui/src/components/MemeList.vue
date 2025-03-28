@@ -107,7 +107,7 @@ function handleAfterEditCategory(_list: string[]) {
 </script>
 
 <template>
-  <main class="flex flex-col gap-8 lg:w-2xl max-w-full">
+  <main class="flex flex-col gap-8 lg:w-2xl max-w-full mb-16">
     <div class="hero h-32 rounded-xl" :style="randomHeroColor">
       <div class="hero-content text-3xl font-bold">
         {{ route.query.category ?? "大家开心最重要" }}
