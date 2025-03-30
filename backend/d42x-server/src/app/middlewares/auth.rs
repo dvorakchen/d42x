@@ -1,5 +1,5 @@
 use crate::{
-    authentication::{AdminUser, CLAIM_UID, CLAIM_USERNAME, validate_claims},
+    authentication::{AuthInformation, CLAIM_UID, CLAIM_USERNAME, validate_claims},
     config,
 };
 use axum::{
@@ -40,7 +40,7 @@ pub async fn jwt_auth_middleware(mut request: Request, next: Next) -> Response {
                             let id: Uuid = serde_json::from_value(id.clone()).unwrap();
                             let username: String =
                                 serde_json::from_value(username.clone()).unwrap();
-                            let au = AdminUser { id, username };
+                            let au = AuthInformation { id, username };
 
                             request.extensions_mut().insert(au);
 

@@ -33,4 +33,6 @@ tower = "0.5.2"
 moka = { version = "0.12.10", features = ["sync"] }
 
 [dev-dependencies]
+mockall = "0.13.1"
+pretty_assertions = "1.4.1"
 sea-orm = { workspace = true, features = ["sqlx-sqlite"] }

@@ -1,4 +1,6 @@
 pub mod gen_meme_repo;
+
+#[cfg(test)]
 mod test;
 
 use chrono::{DateTime, FixedOffset};

@@ -1,6 +1,9 @@
 use migration::async_trait;
 use sea_orm::prelude::Uuid;
 
+#[cfg(test)]
+mod test;
+
 use super::auth::Administrator;
 pub mod gen_account_repo;
 

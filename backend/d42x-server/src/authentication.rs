@@ -11,7 +11,7 @@ pub const CLAIM_USERNAME: &str = "USERNAME";
 const SUBJECT: &str = "user.log_in";
 
 #[derive(Clone, Debug)]
-pub struct AdminUser {
+pub struct AuthInformation {
     pub id: Uuid,
     pub username: String,
 }

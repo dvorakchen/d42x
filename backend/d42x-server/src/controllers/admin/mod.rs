@@ -14,7 +14,7 @@ use validator::Validate;
 
 use crate::{
     app::shared_data::AccountRepoSSType,
-    authentication::{AdminUser, gen_jwt_token},
+    authentication::{AuthInformation, gen_jwt_token},
     business::auth::AdministratorError,
 };
 
@@ -83,7 +83,7 @@ pub(crate) async fn log_in(
 }
 
 pub async fn change_password(
-    Extension(admin_user): Extension<AdminUser>,
+    Extension(admin_user): Extension<AuthInformation>,
     State(account_repo): State<AccountRepoSSType>,
     Json(change_pwd_req): Json<ChangePwdReq>,
 ) -> impl IntoResponse {

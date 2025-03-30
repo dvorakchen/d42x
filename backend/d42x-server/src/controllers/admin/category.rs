@@ -8,13 +8,13 @@ use sea_orm::prelude::Uuid;
 
 use crate::{
     app::shared_data::{AccountRepoSSType, CategoryRepoSSType},
-    authentication::AdminUser,
+    authentication::AuthInformation,
     need_administrator,
 };
 
 pub async fn update_categories(
     Path(meme_id): Path<Uuid>,
-    Extension(admin_user): Extension<AdminUser>,
+    Extension(admin_user): Extension<AuthInformation>,
     State(category_repo): State<CategoryRepoSSType>,
     State(account_repo): State<AccountRepoSSType>,
     Json(list): Json<Vec<String>>,

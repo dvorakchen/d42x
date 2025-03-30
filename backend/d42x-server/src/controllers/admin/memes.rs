@@ -10,7 +10,7 @@ use tracing::error;
 
 use crate::{
     app::shared_data::{AccountRepoSSType, CategoryRepoSSType, MemeRepoSSType},
-    authentication::AdminUser,
+    authentication::AuthInformation,
     business::meme::{GetFilter, Meme},
     need_administrator,
 };
@@ -18,7 +18,7 @@ use crate::{
 use super::models::PostMemesReq;
 
 pub async fn post_memes(
-    Extension(admin_user): Extension<AdminUser>,
+    Extension(admin_user): Extension<AuthInformation>,
     State(account_repo): State<AccountRepoSSType>,
     State(category_repo): State<CategoryRepoSSType>,
     State(meme_repo): State<MemeRepoSSType>,
@@ -62,7 +62,7 @@ pub async fn list_memes(
     Query(params): Query<QueryParams>,
     State(account_repo): State<AccountRepoSSType>,
     State(meme_repo): State<MemeRepoSSType>,
-    Extension(admin_user): Extension<AdminUser>,
+    Extension(admin_user): Extension<AuthInformation>,
 ) -> Response {
     need_administrator!(account_repo, admin_user.id);
 
@@ -90,7 +90,7 @@ pub async fn delete_meme(
     Path(id): Path<Uuid>,
     State(account_repo): State<AccountRepoSSType>,
     State(meme_repo): State<MemeRepoSSType>,
-    Extension(admin_user): Extension<AdminUser>,
+    Extension(admin_user): Extension<AuthInformation>,
 ) -> Response {
     need_administrator!(account_repo, admin_user.id);
 
