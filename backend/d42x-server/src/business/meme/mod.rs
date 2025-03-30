@@ -1,4 +1,5 @@
 pub mod gen_meme_repo;
+mod test;
 
 use chrono::{DateTime, FixedOffset};
 use migration::async_trait;

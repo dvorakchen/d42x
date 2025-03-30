@@ -8,57 +8,65 @@
 
 use bcrypt::verify;
 use db_entity::accounts;
+use sea_orm::ActiveModelTrait;
 use sea_orm::prelude::Uuid;
-use sea_orm::{ActiveModelTrait, DatabaseConnection};
 use sea_orm::{ColumnTrait, DbErr, Set};
 use sea_orm::{EntityTrait, QueryFilter};
 use thiserror::Error;
 
-use crate::db::DbHelper;
+use crate::db::DbConnHelper;
 
-#[derive(Debug)]
 pub struct Administrator {
-    db: DatabaseConnection,
+    db: Box<dyn DbConnHelper + 'static + Sync + Send>,
     pub model: accounts::Model,
 }
 
 impl Administrator {
     pub async fn new(
         username: String,
-        // hashed_password: String,
+        db: impl DbConnHelper + 'static + Sync + Send,
     ) -> AdminResult<Self> {
-        let db = DbHelper::get_connection().await?;
+        let db_conn = db.get_connection().await?;
 
         let admin = {
             accounts::Entity::find()
                 .filter(accounts::Column::Username.eq(username.clone()))
                 // .filter(accounts::Column::HashedPassword.eq(hashed_password))
                 .filter(accounts::Column::IsAdmin.eq(true))
-                .one(&db)
+                .one(&db_conn)
                 .await
                 .map_err(AdministratorError::from)?
         };
 
         if let Some(model) = admin {
-            Ok(Self { db, model })
+            Ok(Self {
+                db: Box::new(db),
+                model,
+            })
         } else {
             Err(AdministratorError::NotFound(username))
         }
     }
 
-    pub async fn new_from_id(id: Uuid) -> AdminResult<Self> {
-        let db = DbHelper::get_connection().await?;
+    pub async fn new_from_id(
+        id: Uuid,
+        db: impl DbConnHelper + 'static + Sync + Send,
+    ) -> AdminResult<Self> {
+        let db_conn = db.get_connection().await?;
 
         let admin = {
             accounts::Entity::find_by_id(id)
                 .filter(accounts::Column::IsAdmin.eq(true))
-                .one(&db)
+                .one(&db_conn)
                 .await
                 .map_err(AdministratorError::from)?
         };
 
         if let Some(model) = admin {
-            Ok(Self { db, model })
+            Ok(Self {
+                db: Box::new(db),
+                model,
+            })
         } else {
             Err(AdministratorError::NotFound(id.to_string()))
         }
@@ -74,7 +82,7 @@ impl Administrator {
         let mut model: accounts::ActiveModel = self.model.clone().into();
         model.hashed_password = Set(new_pwd.to_string());
         model.last_actiity_date_time = Set(now);
-        model.update(&self.db).await?;
+        model.update(&self.db.get_connection().await?).await?;
 
         self.model.hashed_password = new_pwd.to_string();
         self.model.last_actiity_date_time = now;
@@ -96,7 +104,7 @@ impl Administrator {
         let mut model: accounts::ActiveModel = self.model.clone().into();
         model.usual_address = Set(ip_addr.to_string());
         model.last_actiity_date_time = Set(now);
-        model.update(&self.db).await?;
+        model.update(&self.db.get_connection().await?).await?;
 
         self.model.usual_address = ip_addr.to_string();
         self.model.last_actiity_date_time = now;

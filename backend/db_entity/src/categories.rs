@@ -4,7 +4,7 @@ use sea_orm::{Set, entity::prelude::*};
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "categories")]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub parent: Uuid,
     pub name: String,

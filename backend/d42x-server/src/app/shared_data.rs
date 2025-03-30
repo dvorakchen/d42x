@@ -4,6 +4,7 @@ use axum::extract::FromRef;
 use tokio::sync::RwLock;
 
 use crate::business::{
+    accounts::{AccountRepository, PanicAccountRepo},
     category::{CategoryRepository, PanicCategoryRepo},
     meme::{MemeRepository, PanicMemeRepository},
     suggests::{PanicSuggestRepository, SuggestRepository},
@@ -11,9 +12,16 @@ use crate::business::{
 
 #[derive(Clone)]
 pub struct AppStates {
+    pub account_repo: AccountRepoSSType,
     pub meme_repo: MemeRepoSSType,
     pub cate_repo: CategoryRepoSSType,
     pub suggest_repo: SuggestRepoSSType,
+}
+
+impl FromRef<AppStates> for AccountRepoSSType {
+    fn from_ref(input: &AppStates) -> Self {
+        Arc::clone(&input.account_repo)
+    }
 }
 
 impl FromRef<AppStates> for MemeRepoSSType {
@@ -31,6 +39,30 @@ impl FromRef<AppStates> for CategoryRepoSSType {
 impl FromRef<AppStates> for SuggestRepoSSType {
     fn from_ref(input: &AppStates) -> Self {
         Arc::clone(&input.suggest_repo)
+    }
+}
+
+pub type AccountRepoSSType = Arc<AccountRepoSS>;
+
+pub struct AccountRepoSS {
+    pub repo: Box<dyn AccountRepository + 'static + Sync + Send>,
+}
+
+impl AccountRepoSS {
+    pub fn new(repo: impl AccountRepository + 'static + Sync + Send) -> Self {
+        Self {
+            repo: Box::new(repo),
+        }
+    }
+
+    pub fn non() -> Self {
+        Self::new(PanicAccountRepo)
+    }
+}
+
+impl IntoRepoSSType<AccountRepoSSType> for AccountRepoSS {
+    fn into_shared(self) -> AccountRepoSSType {
+        Arc::new(self)
     }
 }
 

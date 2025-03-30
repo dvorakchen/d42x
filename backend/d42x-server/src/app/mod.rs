@@ -22,8 +22,8 @@ use axum::{
 };
 use middlewares::{CipherLayer, jwt_auth_middleware};
 use shared_data::{
-    AppStates, CategoryRepoSS, CategoryRepoSSType, IntoRepoSSType, MemeRepoSS, MemeRepoSSType,
-    SuggestRepoSS, SuggestRepoSSType,
+    AccountRepoSS, AccountRepoSSType, AppStates, CategoryRepoSS, CategoryRepoSSType,
+    IntoRepoSSType, MemeRepoSS, MemeRepoSSType, SuggestRepoSS, SuggestRepoSSType,
 };
 use soft_aes::aes::AES_BLOCK_SIZE;
 use tokio::net::TcpListener;
@@ -44,6 +44,7 @@ impl App {
 pub struct AppBuilder {
     address: String,
     cors: String,
+    account_repo: Option<AccountRepoSSType>,
     category_repo: Option<CategoryRepoSSType>,
     meme_repo: Option<MemeRepoSSType>,
     suggest_repo: Option<SuggestRepoSSType>,
@@ -56,6 +57,7 @@ impl AppBuilder {
         Self {
             address: String::new(),
             cors: String::new(),
+            account_repo: None,
             category_repo: None,
             meme_repo: None,
             suggest_repo: None,
@@ -71,6 +73,11 @@ impl AppBuilder {
 
     pub fn cors(mut self, cors: String) -> Self {
         self.cors = cors;
+        self
+    }
+
+    pub fn account_repo(mut self, repo: impl IntoRepoSSType<AccountRepoSSType>) -> Self {
+        self.account_repo = Some(repo.into_shared());
         self
     }
 
@@ -164,6 +171,12 @@ impl AppBuilder {
     }
 
     fn build_state(&mut self) -> AppStates {
+        let acc_repo = if let Some(acc_repo) = self.account_repo.take() {
+            acc_repo
+        } else {
+            AccountRepoSS::non().into_shared()
+        };
+
         let cate_repo = if let Some(cate_repo) = self.category_repo.take() {
             cate_repo
         } else {
@@ -183,6 +196,7 @@ impl AppBuilder {
         };
 
         AppStates {
+            account_repo: acc_repo,
             cate_repo,
             meme_repo,
             suggest_repo,

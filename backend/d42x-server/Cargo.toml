@@ -6,7 +6,7 @@ edition = { workspace = true }
 [dependencies]
 axum = "0.8.1"
 dotenv = "0.15.0"
-tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread", "sync"] }
 
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
@@ -33,3 +33,4 @@ tower = "0.5.2"
 moka = { version = "0.12.10", features = ["sync"] }
 
 [dev-dependencies]
+sea-orm = { workspace = true, features = ["sqlx-sqlite"] }

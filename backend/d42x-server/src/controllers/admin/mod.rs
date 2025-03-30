@@ -4,27 +4,34 @@ mod models;
 
 use axum::{
     Extension,
+    extract::State,
     http::{HeaderMap, StatusCode, header::ORIGIN},
     response::{IntoResponse, Json, Response},
 };
 use models::{ChangePwdReq, LogInReq, LogInRes};
-use tracing::{error, warn};
+use tracing::warn;
 use validator::Validate;
 
 use crate::{
+    app::shared_data::AccountRepoSSType,
     authentication::{AdminUser, gen_jwt_token},
-    business::auth::{Administrator, AdministratorError},
+    business::auth::AdministratorError,
 };
 
-pub use memes::*;
 pub use category::*;
+pub use memes::*;
 
 #[macro_export]
 macro_rules! need_administrator {
-    ($admin_id: expr) => {
+    ($acc_repo: expr, $admin_id: expr) => {
         use axum::response::IntoResponse;
-        if let Err(e) = crate::business::auth::Administrator::new_from_id($admin_id).await {
-            return (axum::http::StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+        if $acc_repo
+            .repo
+            .get_administractor_by_id($admin_id)
+            .await
+            .is_none()
+        {
+            return axum::http::StatusCode::INTERNAL_SERVER_ERROR.into_response();
         }
     };
 }
@@ -33,17 +40,21 @@ pub async fn check_logged_in() -> Response {
     StatusCode::OK.into_response()
 }
 
-pub(crate) async fn log_in(header: HeaderMap, Json(log_in_req): Json<LogInReq>) -> Response {
+pub(crate) async fn log_in(
+    header: HeaderMap,
+    State(account_repo): State<AccountRepoSSType>,
+    Json(log_in_req): Json<LogInReq>,
+) -> Response {
     if let Err(e) = log_in_req.validate() {
         return (StatusCode::BAD_REQUEST, Json(e)).into_response();
     }
 
-    match Administrator::new(
-        log_in_req.username.clone(), // , log_in_req.hashed_password
-    )
-    .await
-    {
-        Ok(mut admin) => {
+    let admin = account_repo
+        .repo
+        .get_administractor_by_username(log_in_req.username.clone())
+        .await;
+    match admin {
+        Some(mut admin) => {
             if !admin.verify_password(&log_in_req.hashed_password) {
                 return StatusCode::BAD_REQUEST.into_response();
             }
@@ -63,31 +74,31 @@ pub(crate) async fn log_in(header: HeaderMap, Json(log_in_req): Json<LogInReq>) 
             })
             .into_response()
         }
-
-        Err(AdministratorError::NotFound(username)) => {
-            warn!("not found: {}", username);
+        None => {
+            warn!("not found: {}", log_in_req.username);
 
             StatusCode::NO_CONTENT.into_response()
-        }
-        Err(e) => {
-            error!("error: {:?}", e);
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
 }
 
 pub async fn change_password(
     Extension(admin_user): Extension<AdminUser>,
+    State(account_repo): State<AccountRepoSSType>,
     Json(change_pwd_req): Json<ChangePwdReq>,
 ) -> impl IntoResponse {
-    need_administrator!(admin_user.id);
+    need_administrator!(account_repo, admin_user.id);
 
     if let Err(e) = change_pwd_req.validate() {
         return (StatusCode::BAD_REQUEST, Json(e)).into_response();
     }
 
-    match Administrator::new_from_id(admin_user.id).await {
-        Ok(mut admin) if admin.model.username == admin_user.username => {
+    let admin = account_repo
+        .repo
+        .get_administractor_by_id(admin_user.id)
+        .await;
+    match admin {
+        Some(mut admin) if admin.model.username == admin_user.username => {
             match admin
                 .change_password(
                     &change_pwd_req.hashed_password_current,

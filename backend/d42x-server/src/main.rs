@@ -1,12 +1,13 @@
 use clap::Parser;
 use d42x_server::{
-    app::shared_data::{CategoryRepoSS, MemeRepoSS, SuggestRepoSS},
+    app::shared_data::{AccountRepoSS, CategoryRepoSS, MemeRepoSS, SuggestRepoSS},
     business::{
-        cache::MokaCache, category::gen_cate_repo::GenCategoryRepo,
-        meme::gen_meme_repo::GenMemeRepo, suggests::gen_suggest_repo::GenSuggestRepo,
+        accounts::gen_account_repo::GenAccountRepo, cache::MokaCache,
+        category::gen_cate_repo::GenCategoryRepo, meme::gen_meme_repo::GenMemeRepo,
+        suggests::gen_suggest_repo::GenSuggestRepo,
     },
     config,
-    db::shared_db_helper::SharedDbHelper,
+    db::{DbConnHelper, shared_db_helper::SharedDbHelper},
 };
 use migration::{Migrator, MigratorTrait};
 use sea_orm::DbErr;
@@ -57,6 +58,7 @@ fn set_log() {
 }
 
 async fn build_run() {
+    let acc_repo = account_repo_shared_state();
     let cate_repo = category_repo_shared_state();
     let meme_repo = meme_repo_shared_state();
     let suggest_repo = suggest_repo_shared_state();
@@ -64,6 +66,7 @@ async fn build_run() {
     d42x_server::app::AppBuilder::new()
         .address(config::ADDRESS.to_string())
         .cors(config::CORS.to_string())
+        .account_repo(acc_repo)
         .category_repo(cate_repo)
         .meme_repo(meme_repo)
         .suggest_repo(suggest_repo)
@@ -73,6 +76,12 @@ async fn build_run() {
         .await
         .run()
         .await;
+}
+
+fn account_repo_shared_state() -> AccountRepoSS {
+    let db = SharedDbHelper::new(config::DATABASE_URL.to_string());
+    let acc_repo = GenAccountRepo::new(db);
+    AccountRepoSS::new(acc_repo)
 }
 
 fn category_repo_shared_state() -> CategoryRepoSS {
@@ -94,13 +103,15 @@ fn suggest_repo_shared_state() -> SuggestRepoSS {
 }
 
 async fn fresh_db() -> Result<(), DbErr> {
-    let db = d42x_server::db::DbHelper::get_connection().await.unwrap();
+    let db_helper = SharedDbHelper::new(config::DATABASE_URL.to_string());
+    let db = db_helper.get_connection().await.unwrap();
     Migrator::fresh(&db).await?;
     db.close().await
 }
 
 async fn migrate_db() -> Result<(), DbErr> {
-    let db = d42x_server::db::DbHelper::get_connection().await.unwrap();
+    let db_helper = SharedDbHelper::new(config::DATABASE_URL.to_string());
+    let db = db_helper.get_connection().await.unwrap();
     Migrator::up(&db, None).await?;
     db.close().await
 }
