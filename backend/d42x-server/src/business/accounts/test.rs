@@ -48,6 +48,7 @@ mod tests {
         let admin = admin.unwrap();
 
         assert_eq!(admin.model.username, "dvorak".to_owned());
+        assert!(admin.model.is_admin);
     }
 
     #[tokio::test]
@@ -67,5 +68,6 @@ mod tests {
 
         assert_eq!(admin.model.id, id);
         assert_eq!(admin.model.username, "dvorak".to_owned());
+        assert!(admin.model.is_admin);
     }
 }

@@ -1,5 +1,8 @@
+#[cfg(test)]
+use mockall::{automock, predicate::*};
 use std::time::Duration;
 
+#[cfg_attr(test, automock)]
 pub trait Cache<TKey, TValue> {
     /// insert a value by key, return the old value if already existed
     fn insert(&self, key: TKey, value: TValue) -> Option<TValue>;
