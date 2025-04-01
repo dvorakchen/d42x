@@ -25,6 +25,7 @@ impl MigrationTrait for Migration {
                     .col(integer(Memes::Unlikes))
                     .col(string(Memes::Categories))
                     .col(string(Memes::Status))
+                    .col(uuid(Memes::UserId))
                     .col(timestamp_with_time_zone(Memes::ShowDateTime))
                     .col(timestamp_with_time_zone(Memes::CreatedDateTime))
                     .col(timestamp_with_time_zone(Memes::LastActiityDateTime))
@@ -157,6 +158,8 @@ enum Memes {
     Categories,
     #[sea_orm(iden = "status")]
     Status,
+    #[sea_orm(iden = "user_id")]
+    UserId,
     #[sea_orm(iden = "show_date_time")]
     ShowDateTime,
     #[sea_orm(iden = "created_date_time")]

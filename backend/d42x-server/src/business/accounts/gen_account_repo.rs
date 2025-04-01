@@ -1,9 +1,9 @@
 use migration::async_trait;
 use sea_orm::prelude::Uuid;
 
-use crate::{business::auth::Administrator, db::DbConnHelper};
+use crate::db::DbConnHelper;
 
-use super::AccountRepository;
+use super::{AccountRepository, admin::Administrator};
 
 pub struct GenAccountRepo<T: DbConnHelper + Clone> {
     db: T,

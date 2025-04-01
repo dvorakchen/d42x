@@ -4,9 +4,10 @@ use sea_orm::prelude::Uuid;
 #[cfg(test)]
 mod test;
 
-use super::auth::Administrator;
+pub mod admin;
 pub mod gen_account_repo;
 
+use admin::Administrator;
 #[async_trait::async_trait]
 pub trait AccountRepository {
     async fn get_administractor_by_id(&self, _id: Uuid) -> Option<Administrator> {

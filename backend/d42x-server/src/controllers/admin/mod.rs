@@ -15,7 +15,7 @@ use validator::Validate;
 use crate::{
     app::shared_data::AccountRepoSSType,
     authentication::{AuthInformation, gen_jwt_token},
-    business::auth::AdministratorError,
+    business::accounts::admin::AdministratorError,
 };
 
 pub use category::*;

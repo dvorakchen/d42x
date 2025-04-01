@@ -18,6 +18,7 @@ pub struct Model {
     /// ;categories_1;categories_2;
     pub categories: String,
     pub status: Status,
+    pub user_id: Uuid,
     pub show_date_time: chrono::DateTime<FixedOffset>,
     pub created_date_time: chrono::DateTime<FixedOffset>,
     pub last_actiity_date_time: chrono::DateTime<FixedOffset>,
@@ -93,6 +94,7 @@ impl ActiveModelBehavior for ActiveModel {
             unlikes: Set(0),
             categories: Set(format!(";{};", crate::DEFAULT_CATEGORY)),
             status: Set(Status::Uncensored),
+            user_id: Set(Uuid::nil()),
             show_date_time: Set(now),
             created_date_time: Set(now),
             last_actiity_date_time: Set(now),
