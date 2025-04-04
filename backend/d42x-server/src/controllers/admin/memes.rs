@@ -94,8 +94,12 @@ pub async fn delete_meme(
 ) -> Response {
     need_administrator!(account_repo, admin_user.id);
 
-    if let Ok(_) = meme_repo.repo.delete(id).await {
-        StatusCode::OK
+    if let Ok(Some(meme)) = meme_repo.repo.get_meme(id).await {
+        if let Ok(_) = meme.delete().await {
+            StatusCode::OK
+        } else {
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
     } else {
         StatusCode::INTERNAL_SERVER_ERROR
     }

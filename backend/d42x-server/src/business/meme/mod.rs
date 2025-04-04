@@ -16,6 +16,8 @@ use crate::config::AllowMemeFormats;
 
 use super::Pagination;
 
+pub type MemeResult<T> = Result<T, MemeError>;
+
 #[async_trait::async_trait]
 pub trait MemeRepository {
     async fn get_paginated_memes(&self, _page: u64, _category: Option<String>) -> Pagination<Meme> {
@@ -30,11 +32,7 @@ pub trait MemeRepository {
         unimplemented!()
     }
 
-    async fn post_memes(&self, _memes: Vec<PostMeme>) -> Result<(), MemeError> {
-        unimplemented!()
-    }
-
-    async fn delete(&self, _id: Uuid) -> Result<(), MemeError> {
+    async fn post_memes(&self, _memes: Vec<PostMeme>) -> MemeResult<()> {
         unimplemented!()
     }
 

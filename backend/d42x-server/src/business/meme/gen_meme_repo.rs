@@ -192,28 +192,6 @@ where
         Ok(())
     }
 
-    async fn delete(&self, id: Uuid) -> Result<(), MemeError> {
-        let db = self.db.get_connection().await?;
-        let txn = db.begin().await?;
-
-        let model = db_entity::memes::Entity::find_by_id(id).one(&db).await?;
-        if let Some(meme) = model {
-            db_entity::meme_urls::Entity::delete_many()
-                .filter(db_entity::meme_urls::Column::MemeId.eq(meme.id))
-                .exec(&txn)
-                .await?;
-            meme.delete(&txn).await?;
-        }
-
-        txn.commit().await?;
-
-        if let Some(cache) = &self.cache {
-            cache.clear();
-        }
-
-        Ok(())
-    }
-
     async fn get_meme(&self, id: Uuid) -> Result<Option<MemeEntity>, MemeError> {
         let db = self.db.get_connection().await?;
 

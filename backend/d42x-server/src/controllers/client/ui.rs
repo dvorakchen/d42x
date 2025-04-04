@@ -1,15 +1,16 @@
 use axum::{
     Json,
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use sea_orm::prelude::Uuid;
 use serde::Deserialize;
 use validator::Validate;
 
 use crate::{
     app::shared_data::{CategoryRepoSSType, MemeRepoSSType, SuggestRepoSSType},
-    business::category::CategoryItem,
+    business::{category::CategoryItem, meme::Meme},
 };
 
 use super::models::CreateSuggestReq;
@@ -62,4 +63,21 @@ pub async fn create_suggest(
         StatusCode::INTERNAL_SERVER_ERROR
     }
     .into_response()
+}
+
+pub async fn meme_detail(
+    Path(id): Path<Uuid>,
+    State(meme_repo): State<MemeRepoSSType>,
+) -> Json<Meme> {
+    Json(
+        meme_repo
+            .repo
+            .get_meme(id)
+            .await
+            .unwrap()
+            .unwrap()
+            .get_detail()
+            .await
+            .unwrap(),
+    )
 }

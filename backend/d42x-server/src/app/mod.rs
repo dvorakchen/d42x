@@ -8,7 +8,7 @@ use crate::controllers::{
     },
     client::{
         interaction::{get_interactions, like_increase, unlike_increase},
-        ui::{create_suggest, get_categories, get_paginated_memes},
+        ui::{create_suggest, get_categories, get_paginated_memes, meme_detail},
     },
 };
 use axum::{
@@ -130,6 +130,7 @@ impl AppBuilder {
                     .route("/categories", get(get_categories))
                     .route("/memes", get(get_paginated_memes))
                     .route("/memes/interactions", post(get_interactions))
+                    .route("/memes/{id}", get(meme_detail))
                     .route("/memes/{id}/like", put(like_increase))
                     .route("/memes/{id}/unlike", put(unlike_increase))
                     .route("/suggests", post(create_suggest)),

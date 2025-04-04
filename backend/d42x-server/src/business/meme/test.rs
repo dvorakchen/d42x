@@ -201,4 +201,28 @@ mod test {
         assert_eq!(res.len(), 1);
         assert_eq!(res.get(0).unwrap().likes, 1);
     }
+
+    #[tokio::test]
+    async fn detail_success() {
+        let db = TestDB::new().await;
+        let id = {
+            let db_conn = db.get_connection().await.unwrap();
+            let model = db_entity::memes::Entity::find()
+                .one(&db_conn)
+                .await
+                .unwrap()
+                .unwrap();
+            model.id
+        };
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db.clone());
+        let meme = repo.get_meme(id).await.unwrap().unwrap();
+
+        let detail = meme.get_detail().await;
+
+        assert!(detail.is_ok());
+        let detail = detail.unwrap();
+
+        assert_eq!(detail.id, id);
+        assert!(detail.list.len() != 0);
+    }
 }
