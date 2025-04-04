@@ -4,6 +4,15 @@ import MemeList from "../components/MemeList.vue";
 import Return2Top from "../components/Return2Top.vue";
 import Footer from "../components/Footer.vue";
 import TopNav from "../components/TopNav.vue";
+import Icon from "../components/Icon.vue";
+import { mdiArrowLeft } from "@mdi/js";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+function handleRouteBack() {
+  router.back();
+}
 </script>
 
 <template>
@@ -21,7 +30,17 @@ import TopNav from "../components/TopNav.vue";
       <CategoryList />
     </section>
 
-    <section class="lg:w-2xl px-4 py-8 lg:px-8 min-h-screen">
+    <section
+      class="flex flex-col lg:w-2xl px-4 pt-2 md:pt-8 py-8 lg:px-8 min-h-screen"
+    >
+      <div class="py-2">
+        <button
+          class="btn btn-md btn-circle btn-ghost"
+          @click="handleRouteBack"
+        >
+          <Icon :d="mdiArrowLeft" />
+        </button>
+      </div>
       <MemeList />
     </section>
     <section class="justify-self-start hidden lg:block w-48"></section>
