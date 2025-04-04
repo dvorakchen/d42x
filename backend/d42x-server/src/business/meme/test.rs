@@ -9,16 +9,8 @@ mod test {
             cache::MockCache,
             meme::{GetFilter, MemeRepository, gen_meme_repo::GenMemeRepo},
         },
-        db::{MockDbConnHelper, test::setup_db},
+        db::test::TestDB,
     };
-
-    async fn mock_db_helper() -> MockDbConnHelper {
-        let db_conn = setup_db().await;
-        let mut db = MockDbConnHelper::new();
-        db.expect_get_connection()
-            .returning(move || Ok(db_conn.clone()));
-        db
-    }
 
     #[tokio::test]
     async fn get_paginated_memes_success() {
@@ -27,9 +19,9 @@ mod test {
         const EXPECTED_LIST_LENGTH: usize = 2;
         const EXPECTED_MEME_URLS_LENGTH: usize = 4;
 
-        let db = mock_db_helper().await;
+        let db = TestDB::new().await;
 
-        let repo: GenMemeRepo<MockCache<_, _>, MockDbConnHelper> = GenMemeRepo::new(db);
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db);
 
         let list = repo.get_paginated_memes(1, None).await;
         assert_eq!(list.page, EXPECTED_PAGE);
@@ -49,8 +41,8 @@ mod test {
         const EXPECTED_LIST_LENGTH: usize = 2;
         const EXPECTED_STATUS: Option<db_entity::memes::Status> = None;
 
-        let db = mock_db_helper().await;
-        let repo: GenMemeRepo<MockCache<_, _>, MockDbConnHelper> = GenMemeRepo::new(db);
+        let db = TestDB::new().await;
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db);
 
         let list = repo
             .get_paginated_all_memes(GetFilter {
@@ -75,8 +67,8 @@ mod test {
         const EXPECTED_STATUS: Option<db_entity::memes::Status> =
             Some(db_entity::memes::Status::Published);
 
-        let db = mock_db_helper().await;
-        let repo: GenMemeRepo<MockCache<_, _>, MockDbConnHelper> = GenMemeRepo::new(db);
+        let db = TestDB::new().await;
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db);
 
         let list = repo
             .get_paginated_all_memes(GetFilter {
@@ -101,8 +93,8 @@ mod test {
         const EXPECTED_STATUS: Option<db_entity::memes::Status> =
             Some(db_entity::memes::Status::Uncensored);
 
-        let db = mock_db_helper().await;
-        let repo: GenMemeRepo<MockCache<_, _>, MockDbConnHelper> = GenMemeRepo::new(db);
+        let db = TestDB::new().await;
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db);
 
         let list = repo
             .get_paginated_all_memes(GetFilter {
@@ -122,7 +114,7 @@ mod test {
     async fn increase_like_success() {
         const EXPECTED_LIKES: i32 = 1;
 
-        let db = mock_db_helper().await;
+        let db = TestDB::new().await;
         let db_conn = db.get_connection().await.unwrap();
         let id = {
             let model = db_entity::memes::Entity::find()
@@ -133,9 +125,11 @@ mod test {
             model.id
         };
 
-        let repo: GenMemeRepo<MockCache<_, _>, MockDbConnHelper> = GenMemeRepo::new(db);
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db);
 
-        let res = repo.like_increase(id).await;
+        let meme_entity = repo.get_meme(id).await.unwrap().unwrap();
+
+        let res = meme_entity.increase_like().await;
         assert!(res.is_ok());
 
         let model = db_entity::memes::Entity::find_by_id(id)
@@ -151,7 +145,7 @@ mod test {
     async fn increase_like_mutiple_success() {
         const EXPECTED_LIKES: i32 = 2;
 
-        let db = mock_db_helper().await;
+        let db = TestDB::new().await;
         let db_conn = db.get_connection().await.unwrap();
         let id = {
             let model = db_entity::memes::Entity::find()
@@ -162,11 +156,13 @@ mod test {
             model.id
         };
 
-        let repo: GenMemeRepo<MockCache<_, _>, MockDbConnHelper> = GenMemeRepo::new(db);
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db);
+
+        let meme_entity = repo.get_meme(id).await.unwrap().unwrap();
 
         // action
-        repo.like_increase(id).await.unwrap();
-        repo.like_increase(id).await.unwrap();
+        meme_entity.increase_like().await.unwrap();
+        meme_entity.increase_like().await.unwrap();
 
         let model = db_entity::memes::Entity::find_by_id(id)
             .one(&db_conn)
@@ -179,9 +175,9 @@ mod test {
 
     #[tokio::test]
     async fn get_interactions_has_likes_success() {
-        let db = mock_db_helper().await;
-        let db_conn = db.get_connection().await.unwrap();
+        let db = TestDB::new().await;
         let id = {
+            let db_conn = db.get_connection().await.unwrap();
             let model = db_entity::memes::Entity::find()
                 .one(&db_conn)
                 .await
@@ -190,14 +186,17 @@ mod test {
             model.id
         };
 
-        let repo: GenMemeRepo<MockCache<_, _>, MockDbConnHelper> = GenMemeRepo::new(db);
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db.clone());
 
         let res = repo.get_interactions(vec![id]).await;
         assert_eq!(res.len(), 1);
         assert_eq!(res.get(0).unwrap().likes, 0);
 
-        repo.like_increase(id).await.unwrap();
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db.clone());
+        let meme_entity = repo.get_meme(id).await.unwrap().unwrap();
+        meme_entity.increase_like().await.unwrap();
 
+        let repo: GenMemeRepo<MockCache<_, _>, TestDB> = GenMemeRepo::new(db.clone());
         let res = repo.get_interactions(vec![id]).await;
         assert_eq!(res.len(), 1);
         assert_eq!(res.get(0).unwrap().likes, 1);

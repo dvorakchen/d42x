@@ -1,9 +1,11 @@
 pub mod gen_meme_repo;
+pub mod meme_entity;
 
 #[cfg(test)]
 mod test;
 
 use chrono::{DateTime, FixedOffset};
+use meme_entity::MemeEntity;
 use migration::async_trait;
 use sea_orm::{DbErr, prelude::Uuid};
 use serde::{Deserialize, Serialize};
@@ -36,11 +38,7 @@ pub trait MemeRepository {
         unimplemented!()
     }
 
-    async fn like_increase(&self, _id: Uuid) -> Result<(), MemeError> {
-        unimplemented!()
-    }
-
-    async fn unlike_increase(&self, _id: Uuid) -> Result<(), MemeError> {
+    async fn get_meme(&self, _id: Uuid) -> Result<Option<MemeEntity>, MemeError> {
         unimplemented!()
     }
 }

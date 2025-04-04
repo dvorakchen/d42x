@@ -16,7 +16,7 @@ use sea_orm::{
 use serde_json::json;
 use tracing::debug;
 
-use super::{GetFilter, Meme, MemeError, MemeRepository, PostMeme};
+use super::{GetFilter, Meme, MemeError, MemeRepository, PostMeme, meme_entity::MemeEntity};
 
 const PAGINATED_MEMES_CACHE_KEY: &str = "PAGINATED_MEMES_CACHE_KEY";
 const DEFAULT_PAGE_SIZE: u64 = 10;
@@ -24,7 +24,7 @@ const DEFAULT_PAGE_SIZE: u64 = 10;
 pub struct GenMemeRepo<TCache, TDb>
 where
     TCache: Cache<String, String>,
-    TDb: DbConnHelper,
+    TDb: DbConnHelper + Clone + 'static,
 {
     cache: Option<TCache>,
     db: TDb,
@@ -34,7 +34,7 @@ where
 impl<TCache, TDb> GenMemeRepo<TCache, TDb>
 where
     TCache: Cache<String, String>,
-    TDb: DbConnHelper,
+    TDb: DbConnHelper + Clone + 'static,
 {
     pub fn new(db: TDb) -> Self {
         Self {
@@ -57,7 +57,7 @@ where
 impl<TCache, TDb> MemeRepository for GenMemeRepo<TCache, TDb>
 where
     TCache: Cache<String, String> + Sync + Send,
-    TDb: DbConnHelper + Sync + Send,
+    TDb: DbConnHelper + Sync + Send + Clone + 'static,
 {
     async fn get_paginated_memes(&self, page: u64, category: Option<String>) -> Pagination<Meme> {
         let key = get_paginated_meme_cache_key(page, &category);
@@ -214,43 +214,23 @@ where
         Ok(())
     }
 
-    async fn like_increase(&self, id: Uuid) -> Result<(), MemeError> {
+    async fn get_meme(&self, id: Uuid) -> Result<Option<MemeEntity>, MemeError> {
         let db = self.db.get_connection().await?;
 
-        let meme = db_entity::memes::Entity::find_by_id(id)
-            .one(&db)
-            .await?
-            .ok_or(MemeError::HasNotAnyMeme)?;
-        let likes = meme.likes + 1;
-        let mut meme: db_entity::memes::ActiveModel = meme.into();
-        meme.likes = Set(likes);
-
-        meme.update(&db).await?;
-
-        return Ok(());
-    }
-
-    async fn unlike_increase(&self, id: Uuid) -> Result<(), MemeError> {
-        let db = self.db.get_connection().await?;
-
-        let meme = db_entity::memes::Entity::find_by_id(id)
-            .one(&db)
-            .await?
-            .ok_or(MemeError::HasNotAnyMeme)?;
-        let unlikes = meme.unlikes + 1;
-        let mut meme: db_entity::memes::ActiveModel = meme.into();
-        meme.unlikes = Set(unlikes);
-
-        meme.update(&db).await?;
-
-        return Ok(());
+        let model = db_entity::memes::Entity::find_by_id(id).one(&db).await?;
+        if let Some(model) = model {
+            let db = self.db.clone();
+            Ok(Some(MemeEntity::new(model, db)))
+        } else {
+            Ok(None)
+        }
     }
 }
 
 impl<TCache, TDb> GenMemeRepo<TCache, TDb>
 where
     TCache: Cache<String, String> + Sync + Send,
-    TDb: DbConnHelper + Sync + Send,
+    TDb: DbConnHelper + Sync + Send + Clone,
 {
     async fn post_meme<'a, C: ConnectionTrait>(
         &self,

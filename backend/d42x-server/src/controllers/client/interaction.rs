@@ -11,8 +11,12 @@ pub async fn like_increase(
     Path(id): Path<Uuid>,
     State(meme_repo): State<MemeRepoSSType>,
 ) -> Response {
-    if let Ok(_) = meme_repo.repo.like_increase(id).await {
-        StatusCode::OK
+    if let Ok(Some(meme)) = meme_repo.repo.get_meme(id).await {
+        if let Ok(_) = meme.increase_like().await {
+            StatusCode::OK
+        } else {
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
     } else {
         StatusCode::INTERNAL_SERVER_ERROR
     }
@@ -23,8 +27,12 @@ pub async fn unlike_increase(
     Path(id): Path<Uuid>,
     State(meme_repo): State<MemeRepoSSType>,
 ) -> Response {
-    if let Ok(_) = meme_repo.repo.unlike_increase(id).await {
-        StatusCode::OK
+    if let Ok(Some(meme)) = meme_repo.repo.get_meme(id).await {
+        if let Ok(_) = meme.increase_unlike().await {
+            StatusCode::OK
+        } else {
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
     } else {
         StatusCode::INTERNAL_SERVER_ERROR
     }

@@ -29,7 +29,6 @@ export const handlers = [
     const qs = new URLSearchParams(new URL(request.url).searchParams);
     const page = parseInt(qs.get("page") ?? "1");
     const SIZE = 10;
-    console.log(page);
 
     const mockRes: PaginatedModel<MemeEntityModel> = {
       page,
