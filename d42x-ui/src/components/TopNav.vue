@@ -27,7 +27,7 @@ function handleExpand() {
       <RouterLink to="/">🤣D42X</RouterLink>
       <span class="text-sm font-medium"> - {{ showSlug }}</span>
     </h1>
-    <div class="md:hidden pt-8 pb-4">
+    <div class="md:hidden pt-2">
       <div class="flex flex-col">
         <button class="btn btn-square" @click="handleExpand">
           <Icon :d="mdiListBox" :size="30" />

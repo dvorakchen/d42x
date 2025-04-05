@@ -25,7 +25,7 @@ function handleRouteBack() {
     class="relative grid grid-rows-[repeat(3,auto)] grid-cols-1 md:grid-cols-[repeat(3,auto)] min-h-screen"
   >
     <section
-      class="col-start-1 col-end-4 sticky top-0 z-30 px-2 md:px-8 py-2 bg-base-100"
+      class="col-start-1 col-end-4 sticky top-0 z-30 px-2 md:px-8 pt-2 bg-base-100"
     >
       <TopNav />
     </section>
@@ -36,11 +36,11 @@ function handleRouteBack() {
     </section>
 
     <section
-      class="flex flex-col lg:w-2xl px-4 pt-2 md:pt-8 py-8 lg:px-8 min-h-screen"
+      class="flex flex-col lg:w-2xl px-4 md:pt-8 pb-8 lg:px-8 min-h-screen"
     >
       <div class="py-2">
         <button
-          class="btn btn-md btn-circle btn-ghost"
+          class="btn btn-md btn-square btn-ghost w-fit"
           @click="handleRouteBack"
           :disabled="!backAllow"
         >
