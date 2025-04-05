@@ -1,0 +1,10 @@
+name: d42x-ui
+services:
+  d42x-viewer:
+    build:
+      context: .
+      target: final
+    container_name: d42x-ui
+    restart: unless-stopped
+    ports:
+      - 3002:80

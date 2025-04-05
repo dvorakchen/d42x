@@ -141,10 +141,6 @@ impl AppBuilder {
         let router = Router::new()
             // .route("/", get(home))
             .nest("/api", api_routes)
-            .route_service(
-                "/",
-                tower_http::services::ServeDir::new("wwwroot/index.html"),
-            )
             .nest_service(
                 "/assets",
                 tower_http::services::ServeDir::new("wwwroot/assets"),

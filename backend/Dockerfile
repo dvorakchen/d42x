@@ -34,22 +34,6 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN cargo build --release
 
-# Build JavaScript
-FROM hub.aiursoft.cn/oven/bun:slim as bun
-
-WORKDIR /app
-
-COPY ./d42x-ui/package.json ./package.json
-COPY ./d42x-ui/bunfig.toml ./bunfig.toml
-COPY ./d42x-ui/bun.lock ./bun.lock
-
-RUN bun i
-
-COPY ./d42x-ui/. .
-
-RUN bun i
-RUN bun run build
-
 # RUN
 
 FROM hub.aiursoft.cn/debian:stable-slim AS final
@@ -59,7 +43,6 @@ ARG APP_NAME
 USER root
 
 COPY --from=rust-build /app/target/release/${APP_NAME} /bin/server
-COPY --from=bun /app/dist /bin/wwwroot
 
 EXPOSE 9876
 
