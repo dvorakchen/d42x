@@ -15,4 +15,6 @@ RUN bun run build
 
 FROM hub.aiursoft.cn/nginx:alpine as final
 
+COPY --from=bun /app/nginx.conf /etc/nginx/conf.d/default.conf
+
 COPY --from=bun /app/dist/ /usr/share/nginx/html/

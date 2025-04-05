@@ -1,0 +1,12 @@
+/node_modules
+/wwwroot
+/Dockerfile
+/compose.yaml
+/README.md
+/Licence
+/.vscode
+/.nuxt-guide
+/.laravel-guide
+/docs
+/dist
+/.env.local
