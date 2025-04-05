@@ -42,6 +42,7 @@ impl MemeEntity {
 
         let detail = Meme {
             id: self.model.id,
+            short_id: self.model.short_id.to_owned(),
             categories: self
                 .model
                 .categories

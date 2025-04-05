@@ -49,7 +49,9 @@ function handleTrigglePlay() {
         class="absolute left-2 bottom-2 flex items-center justify-center"
         v-show="!playing || loading"
       >
-        <Icon :d="mdiPlayCircle" :size="50" color="#222" v-if="!playing" />
+        <span class="bg-white rounded-full">
+          <Icon :d="mdiPlayCircle" :size="50" color="#222" v-if="!playing" />
+        </span>
         <span class="loading loading-dots bg-base-200" v-if="loading"></span>
       </div>
     </div>

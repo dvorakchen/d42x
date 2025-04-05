@@ -1,14 +1,16 @@
-use std::fmt::Display;
-
 use chrono::{FixedOffset, Utc};
+use nanoid::nanoid;
 use sea_orm::{Set, entity::prelude::*};
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "memes")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
+    #[sea_orm(unique)]
+    pub short_id: String,
     pub message: String,
     pub nickname: String,
     pub email: String,
@@ -86,6 +88,7 @@ impl ActiveModelBehavior for ActiveModel {
         let now = Utc::now().into();
         Self {
             id: Set(Uuid::now_v7()),
+            short_id: Set(nanoid!(10)),
             nickname: Set(String::new()),
             email: Set(String::new()),
             message: Set(String::new()),

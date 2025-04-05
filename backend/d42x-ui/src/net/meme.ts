@@ -10,6 +10,11 @@ export async function getPaginatedMemeList(page: number, category: string) {
   return resp.data;
 }
 
+export async function getMemeDetail(shortId: string): Promise<MemeEntityModel> {
+  const resp = await serverApi.get<MemeEntityModel>(`memes/${shortId}`);
+  return resp.data;
+}
+
 export const skeletonMemeList = [
   {
     id: "0",

@@ -14,6 +14,7 @@ export type PaginatedModel<T> = {
 
 export type MemeEntityModel = {
   id: string;
+  short_id: string;
   likes: number;
   unlikes: number;
   categories: string[];

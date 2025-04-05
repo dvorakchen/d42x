@@ -36,7 +36,11 @@ pub trait MemeRepository {
         unimplemented!()
     }
 
-    async fn get_meme(&self, _id: Uuid) -> Result<Option<MemeEntity>, MemeError> {
+    async fn get_meme(&self, _id: Uuid) -> MemeResult<Option<MemeEntity>> {
+        unimplemented!()
+    }
+
+    async fn get_meme_by_short_id(&self, _short_id: String) -> MemeResult<Option<MemeEntity>> {
         unimplemented!()
     }
 }
@@ -56,6 +60,7 @@ pub struct GetFilter {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Meme {
     pub id: Uuid,
+    pub short_id: String,
     pub categories: Vec<String>,
     pub nickname: String,
     pub show_date_time: DateTime<FixedOffset>,

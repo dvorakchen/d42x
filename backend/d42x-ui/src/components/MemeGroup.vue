@@ -3,7 +3,14 @@ import MemeEntity from "./MemeEntity/Index.vue";
 import { toYYYYMMDDHHmmss } from "../utilities/date";
 import type { MemeEntityModel } from "../net/models";
 import Icon from "./Icon.vue";
-import { mdiDotsHorizontal, mdiHeart, mdiHeartBroken } from "@mdi/js";
+import {
+  mdiCheck,
+  mdiDotsHorizontal,
+  mdiHeart,
+  mdiHeartBroken,
+  mdiLinkVariant,
+  mdiShareAll,
+} from "@mdi/js";
 import { onMounted, ref } from "vue";
 import { useInteractStore, type Interaction } from "../stores/interaction";
 import { serverApi } from "../net/http";
@@ -18,6 +25,8 @@ const props = defineProps<{
 }>();
 
 const interactStore = useInteractStore();
+const expandShare = ref(false);
+const linkCopied = ref(false);
 const like = ref(false);
 const unlike = ref(false);
 const liked = ref(false);
@@ -74,6 +83,18 @@ async function handleUnlike() {
   }
 }
 
+function handleShare() {
+  expandShare.value = !expandShare.value;
+}
+
+async function handleCopyLink() {
+  await navigator.clipboard.writeText(
+    `${location.origin}/memes/${props.meme.short_id}`
+  );
+
+  linkCopied.value = true;
+}
+
 // TODO
 // function handleEtitCategory() {
 //   emit("editCategory", props.meme.id);
@@ -92,6 +113,11 @@ async function handleUnlike() {
           >{{ cate }}</RouterLink
         >
       </div>
+
+      <button class="btn">
+        <RouterLink :to="`/memes/${props.meme.short_id}`"> 详情页 </RouterLink>
+      </button>
+      
       <div class="dropdown dropdown-end">
         <button class="btn btn-ghost btn-square" tabindex="0" role="button">
           <Icon :d="mdiDotsHorizontal" />
@@ -116,7 +142,7 @@ async function handleUnlike() {
     <MemeEntity v-for="entity in meme.list" :key="entity.id" :entity="entity" />
   </div>
   <!-- interactions -->
-  <div class="mt-4 space-x-4 flex">
+  <div class="mt-4 space-x-4 flex flex-wrap">
     <span class="flex items-center gap-2 w-16"
       ><div class="cursor-pointer relative" @click="handleLike">
         <span
@@ -145,5 +171,35 @@ async function handleUnlike() {
       </div>
       <span>{{ meme.unlikes }}</span>
     </span>
+    <div class="mx-4 flex items-center">
+      <button
+        class="btn btn-ghost btn-xs tooltip"
+        data-tip="分享"
+        @click="handleShare"
+      >
+        <Icon :d="mdiShareAll" />
+      </button>
+      <div
+        class="grid transition-all"
+        :class="{
+          'grid-cols-[1fr]': expandShare,
+          'grid-cols-[0fr]': !expandShare,
+        }"
+      >
+        <div class="join overflow-hidden transition-all">
+          <button
+            class="btn btn-xs btn-primary join-item"
+            @click="handleCopyLink"
+          >
+            <Icon :d="mdiLinkVariant" :size="20" />
+            复制链接
+            <Icon :d="mdiCheck" v-if="linkCopied" />
+          </button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-sm">
+      <RouterLink :to="`/memes/${props.meme.short_id}`"> 详情页 </RouterLink>
+    </button>
   </div>
 </template>

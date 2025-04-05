@@ -4,7 +4,6 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use sea_orm::prelude::Uuid;
 use serde::Deserialize;
 use validator::Validate;
 
@@ -66,13 +65,13 @@ pub async fn create_suggest(
 }
 
 pub async fn meme_detail(
-    Path(id): Path<Uuid>,
+    Path(short_id): Path<String>,
     State(meme_repo): State<MemeRepoSSType>,
 ) -> Json<Meme> {
     Json(
         meme_repo
             .repo
-            .get_meme(id)
+            .get_meme_by_short_id(short_id)
             .await
             .unwrap()
             .unwrap()

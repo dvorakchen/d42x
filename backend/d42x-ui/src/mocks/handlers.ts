@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { delay, http, HttpResponse } from "msw";
 import type {
   CategoryModel,
   MemeEntityModel,
@@ -48,10 +48,17 @@ export const handlers = [
 
     return HttpResponse.text(encrypt(JSON.stringify(mockRes)));
   }),
+  http.get(`${BASE_URL}memes/:shortId`, async ({ params }) => {
+    const { shortId } = params;
+    const model = fakeMemes.find((t) => t.short_id === shortId);
+    await delay(2_000);
+    return HttpResponse.text(encrypt(JSON.stringify(model)));
+  }),
 ];
 
 const fakeMemes: MemeEntityModel[] = new Array(20).fill({
   id: "000",
+  short_id: "T4EBpJjw-J",
   likes: 10,
   unlikes: 3,
   categories: ["meme", "初音未来"],

@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import CategoryList from "../components/CategoryList.vue";
-import MemeList from "../components/MemeList.vue";
 import Return2Top from "../components/Return2Top.vue";
 import Footer from "../components/Footer.vue";
 import TopNav from "../components/TopNav.vue";
 import Icon from "../components/Icon.vue";
 import { mdiArrowLeft } from "@mdi/js";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import { computed } from "vue";
 
 const router = useRouter();
+const route = useRoute();
+
+const backAllow = computed(() => {
+  return route.path !== "/";
+});
 
 function handleRouteBack() {
   router.back();
@@ -37,11 +42,12 @@ function handleRouteBack() {
         <button
           class="btn btn-md btn-circle btn-ghost"
           @click="handleRouteBack"
+          :disabled="!backAllow"
         >
           <Icon :d="mdiArrowLeft" />
         </button>
       </div>
-      <MemeList />
+      <RouterView />
     </section>
     <section class="justify-self-start hidden lg:block w-48"></section>
     <section class="static z-10 col-start-1 col-end-4">

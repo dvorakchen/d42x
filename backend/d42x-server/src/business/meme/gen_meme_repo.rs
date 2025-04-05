@@ -16,7 +16,9 @@ use sea_orm::{
 use serde_json::json;
 use tracing::debug;
 
-use super::{GetFilter, Meme, MemeError, MemeRepository, PostMeme, meme_entity::MemeEntity};
+use super::{
+    GetFilter, Meme, MemeError, MemeRepository, MemeResult, PostMeme, meme_entity::MemeEntity,
+};
 
 const PAGINATED_MEMES_CACHE_KEY: &str = "PAGINATED_MEMES_CACHE_KEY";
 const DEFAULT_PAGE_SIZE: u64 = 10;
@@ -164,7 +166,7 @@ where
         models
     }
 
-    async fn post_memes(&self, memes: Vec<PostMeme>) -> Result<(), MemeError> {
+    async fn post_memes(&self, memes: Vec<PostMeme>) -> MemeResult<()> {
         if let Some(cache) = &self.cache {
             cache.clear();
         }
@@ -192,10 +194,25 @@ where
         Ok(())
     }
 
-    async fn get_meme(&self, id: Uuid) -> Result<Option<MemeEntity>, MemeError> {
+    async fn get_meme(&self, id: Uuid) -> MemeResult<Option<MemeEntity>> {
         let db = self.db.get_connection().await?;
 
         let model = db_entity::memes::Entity::find_by_id(id).one(&db).await?;
+        if let Some(model) = model {
+            let db = self.db.clone();
+            Ok(Some(MemeEntity::new(model, db)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn get_meme_by_short_id(&self, short_id: String) -> MemeResult<Option<MemeEntity>> {
+        let db = self.db.get_connection().await?;
+
+        let model = db_entity::memes::Entity::find()
+            .filter(memes::Column::ShortId.eq(short_id))
+            .one(&db)
+            .await?;
         if let Some(model) = model {
             let db = self.db.clone();
             Ok(Some(MemeEntity::new(model, db)))
@@ -269,6 +286,7 @@ async fn models_2_meme_list(
     for item in models {
         meme_list.push(Meme {
             id: item.id,
+            short_id: item.short_id.to_string(),
             categories: item
                 .categories
                 .split(';')
